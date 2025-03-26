@@ -1,0 +1,391 @@
+!// Comments, Terminators, and Whitespace
+// Comments are made with // for single-line /**/ for multi-line comments.
+// !// for single line doc comments and !/**/ for multi line doc comments.
+
+/*
+Multi
+Line
+Comment
+*/
+
+!// single line Doc comment
+!/*
+  Multiline
+  Doc comment
+*/
+
+// Whitespace is non-significant in Mint, and indentation is not required.
+// However, the formatter standardizes indentation to 2 spaces.
+//
+// Statements are terminated by a newline.
+// To place multiple statements on the same line, use ; as a separator.
+// Example:
+// var x int = 10; var y float = 3.14 // Both statements end normally.
+// A line with multiple statements still needs to end with a new line, ; are used just to separate statements within it
+
+!// Variable Declaration
+// Variables are immutable by default.
+var x int
+
+// Declaration and assignment
+var x int = 10
+x = 11 // FORBIDDEN
+
+// To declare mutable variables, use mut.
+var mut y int = 10
+y = 11 // ALLOWED
+
+// All variables must be explicitly typed, with one exception:
+z := 10 // Type inference based on assignment user the right side underlying type
+w := x  // type of w is now int
+
+// Variables are locally declared unless they are pointers or declared in the top-level scope (outside functions).
+// When a scope ends, all variables within it are deleted.
+
+!// Data Types in Mint
+
+// Mint provides a range of built-in data types, categorized into primitive and composed types.
+
+!// Primitive Types
+// Integer types:
+int // by default an i32
+i8, i16, i32, i64, i128 // Signed integers with defined bit sizes
+u8, u16, u32, u64, u128 // Unsigned integers with defined bit sizes
+
+// Floating-point types:
+float // by default a f32
+f32, f64 // 32-bit and 64-bit floating-point numbers
+
+// Boolean type:
+bool // Can be either true or false
+
+// Character type:
+char // Supports UTF-8, making it a wide character type
+
+// String type:
+string // A sequence of UTF-8 characters
+
+// Path type:
+path // Represents filesystem paths, e.g., var home path = /home/user
+
+
+!// Type Aliases
+// Type aliases allow you to create meaningful names for existing types.
+type ID int
+
+var userId ID = 100 // Now userId is of type ID, which is an alias for int
+
+
+!// Composed Types
+// Composed types allow the grouping of multiple values under one structure.
+
+
+!// Structs
+// Structs are used to group multiple fields into a single entity.
+User struct {
+  name string
+  id   ID
+}
+
+var john User = {"John", 1} // Creating an instance of User
+
+// Structs help organize related data in a single unit, making code more readable and structured.
+
+
+!// Enums
+// Enums define a set of named values, restricting variables to a predefined set of options.
+ProtocolType enum {
+  M42
+  L32
+}
+
+var currentProtocol ProtocolType = ProtocolType.M42 // Assigning an enum value
+
+// Enums improve code clarity by providing descriptive names for constant values.
+
+!// Operators in Mint
+
+// Mint provides various operators categorized as follows:
+
+!// Arithmetic Operators
+// Used for mathematical operations.
++   // Addition
+-   // Subtraction
+*   // Multiplication
+/   // Division
+%   // Modulus (Remainder)
+
+var sum int = 10 + 5   // 15
+var product int = 4 * 3 // 12
+
+
+!// Comparison Operators
+// Used to compare values. Returns a boolean result.
+==  // Equal to
+!=  // Not equal to
+>   // Greater than
+<   // Less than
+>=  // Greater than or equal to
+<=  // Less than or equal to
+
+var isEqual bool = (10 == 10)  // true
+var isGreater bool = (5 > 3)   // true
+
+
+!// Logical Operators
+// Used for boolean logic.
+&&  // Logical AND
+||  // Logical OR
+!   // Logical NOT
+
+var result bool = (true && false) // false
+var negation bool = !true         // false
+
+
+!// Bitwise Operators
+// Used for bitwise operations.
+&   // Bitwise AND
+|   // Bitwise OR
+~   // Bitwise NOT
+<<  // Left shift
+>>  // Right shift
+^   // Bitwise XOR
+
+var andResult int = (5 & 3)  // 1
+var shiftLeft int = (4 << 1) // 8
+
+
+!// Assignment Operators
+// Used for assigning and modifying values.
+=   // Simple assignment
++=  // Add and assign
+-=  // Subtract and assign
+*=  // Multiply and assign
+/=  // Divide and assign
+%=  // Modulus and assign
+&=  // Bitwise AND and assign
+|=  // Bitwise OR and assign
+^=  // Bitwise XOR and assign
+<<= // Left shift and assign
+>>= // Right shift and assign
+
+var x int = 10
+x += 5  // x is now 15
+x &= 3  // x is now 3
+
+// These operators help simplify expressions while keeping the code concise.
+
+
+!// Control Flow in Mint
+
+// Control flow structures allow decision-making and looping in programs.
+
+!// Conditional Statements
+// `if`, `elif`, and `else` are used for branching logic.
+
+var x int = 10
+if x > 10 {
+  print("Greater than 10")
+} elif x == 10 {
+  print("Exactly 10")
+} else {
+  print("Less than 10")
+}
+
+// Conditions must evaluate to a boolean value.
+
+
+!// Loops
+// Mint provides different loop constructs for repeated execution.
+
+!// While Loop
+// Runs as long as the condition remains true.
+
+var i int = 0
+while i < 5 {
+  print(i)
+  i += 1
+}
+
+// Ensures execution only when the condition holds.
+
+
+!// While Loop with Collection Iteration
+// `while x in list` retrieves and checks an item’s boolean value.
+
+var numbers []int = [1, 0, 1]
+while num in numbers {
+  print(num) // Will only print `1`, ignoring `0` since `false` stops execution.
+}
+
+// Unlike `for in`, which iterates through all items, `while in` stops at the first `false`.
+
+
+!// For Loop
+// Used for iterating over ranges.
+
+for var i int = 0; i < 5; i += 1 {
+  print(i)
+}
+
+// `for` also works with lists:
+
+var numbers []int = [1, 2, 3, 4, 5]
+for num in numbers {
+  print(num)
+}
+
+// This iterates over all elements in `numbers`.
+
+
+!// Loop Control
+// `break` exits a loop entirely.
+// `continue` skips the current iteration.
+
+var count int = 0
+while count < 10 {
+  count += 1
+  if count == 5 { continue } // Skips printing 5
+  if count == 8 { break } // Stops the loop at 8
+  print(count)
+}
+
+
+!// Pattern Matching with `match`
+// `match` is a powerful way to handle multiple cases.
+
+var x int = 5
+match x {
+  0 -> print("Zero")
+  1..10 -> print("Between 1 and 10")
+  _ -> print("Other value")
+}
+
+// `_` serves as a wildcard, matching any other value.
+
+
+// `match` supports tuples for multiple conditions.
+
+var x int = 1
+var y int = 0
+match x, y {
+  _, 0 -> print("Second value is zero")
+  0, _ -> print("First value is zero")
+  0, 0 -> print("Both are zero")
+  _, _ -> print("Any other combination")
+}
+
+// Tuples also match directly:
+var z (int, int) = (x, y)
+match z {
+  _, 0 -> print("Tuple where second value is zero")
+  0, _ ->
+    print("Tuple where first value is zero")
+    print("Extra logic")
+  0, 0 -> print("Tuple where both are zero")
+  _, _ -> print("Any other tuple")
+}
+
+// This allows destructuring and efficient pattern-based handling.
+
+
+!// Switch Statements (Rarely Used)
+// Mint supports `switch`, which falls through by default.
+
+switch x {
+  0 -> print("Zero")
+  1 -> print("One")
+  2 -> print("Two")
+  _ -> print("Other value")
+}
+
+// If you want to stop execution in a case, use `break`.
+
+switch x {
+  0 -> print("Zero")
+  1 ->
+    print("One")
+    break
+  2 -> print("Two") 
+  _ -> print("Other value")
+}
+
+// `match` is preferred because it supports pattern matching and tuples.
+
+
+!// Functions in Mint
+
+// Mint supports explicit return types, multiple return values, default arguments, variadic functions, anonymous functions, and higher-order functions.
+
+!// Function Declaration & Syntax
+// A function is declared using the syntax:
+// fn function_name(parameters) -> return_type(s) { ... }
+// If a function does not return a value it doesn't need to explicit a return type. // Only in the future rn all functions require a void return at least
+// Main doesnt need to return anything unless you want an exit code, in which case you declare main as returning int
+
+// No return function declaration
+myfunc() {
+print("This is a function!")
+}
+
+// A function that return a value
+increment(x int) -> int {
+  return x + 1
+}
+
+// A function that return more than one value
+sqrt(x int) -> (float, error) {
+  if x < 0 {
+    return 0, error("Cannot get sqrt of negative number")
+  }
+  ...
+}
+
+!// Variadic Functions
+// A function can accept a variable number of arguments using ... (spread notation).
+// variadic elements need to be always be the last declared inside a functions parameters
+
+sum(numbers ...int) -> int {
+  var total int = 0
+  for n in numbers {
+    total += n
+  }
+  return total
+}
+
+print(sum(1, 2, 3, 4)) // 10
+
+!// Methods (Functions Inside Structs)
+// Mint allows struct methods that can access the struct’s fields.
+
+struct User {
+  name string
+  id   int
+}
+
+greet(msg string)[u User] -> void {
+  print(msg, " ", u.name)
+}
+
+// Usage:
+var u User = {"John", 1}
+u.greet("Hello") // "Hello John"
+
+!// Anonymous Functions (Lambdas)
+// Functions can be assigned to variables.
+
+var add = (a int, b int) -> int { return a + b }
+print(add(2, 3)) // 5
+
+!// Higher-Order Functions
+// Functions can take other functions as arguments.
+
+apply(x int, f (int) -> int) -> int {
+return f(x)
+}
+
+fn square(n int) -> int {
+return n * n
+}
+
+print(apply(5, square)) // 25
