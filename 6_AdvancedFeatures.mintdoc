@@ -1,0 +1,207 @@
+!// Mint Language: Advanced Features
+!// Version: 0.1.0
+!// @since Mint 0.4.1
+
+!// Table of Contents
+!// 1. Modules and Imports
+!// 2. Macros
+!// 3. Operator Overloading
+!// 4. Concurrency
+!// 5. Memory Management
+!// 6. Reflection
+
+!// 1. Modules and Imports
+// @since Mint 0.4.1
+// Mint supports modular code organization through modules and imports.
+
+// Module declaration - usually at the top of a file
+module math
+
+// Exporting functions and types (public API)
+export square(x int) -> int {
+  return x * x
+}
+
+export type Vector2D struct {
+  float x
+  float y
+}
+
+// Private function (only accessible within the module)
+distance(v1 Vector2D, v2 Vector2D) -> float {
+  float dx = v2.x - v1.x
+  float dy = v2.y - v1.y
+  return math.sqrt(dx*dx + dy*dy)
+}
+
+// Importing modules
+import math                     // Import entire module
+import math as m                // Import with alias
+import { sqrt, sin, cos } from math  // Import specific items
+
+// Using imported items
+float root = math.sqrt(16)      // Using the full module name
+float sine = m.sin(3.14)        // Using the alias
+float cosine = cos(3.14)        // Using directly imported function
+
+// Conditional imports
+#if PLATFORM == "windows" {
+  import windows.filesystem
+} else {
+  import unix.filesystem
+}
+
+!// 2. Macros
+// @since Mint 0.5.1
+// @experimental
+// Macros are a way to create code at compile time.
+
+// Basic macro definition
+macro print_twice(x) {
+  print(x)
+  print(x)
+}
+
+// Using a macro
+print_twice("Hello, world!")
+// Expands to:
+// print("Hello, world!")
+// print("Hello, world!")
+
+// Macros with no arguments can be called without parentheses
+macro xyz {
+  print("xyz")
+}
+
+xyz // Prints "xyz"
+
+// Stringify operator (##) to get the text representation
+macro func_name(x) {
+  print(##x)
+}
+
+add(a, b) -> int {
+  return a + b
+}
+
+func_name(add) // Prints "add"
+
+// Macro for conditional compilation
+macro debug_print(msg) {
+  #if DEBUG {
+    print("[DEBUG]:", msg)
+  }
+}
+
+// Control flow in macros
+macro repeat(count, code) {
+  #for i in 0..count {
+    code
+  }
+}
+
+repeat(3, print("Hello")) 
+// Expands to:
+// print("Hello")
+// print("Hello")
+// print("Hello")
+
+// Hygenic macros (avoid name collisions)
+macro safe_increment(x) {
+  #let tmp = x
+  tmp = tmp + 1
+  x = tmp
+}
+
+!// 3. Operator Overloading
+// @since Mint 0.4.2
+// Mint allows overloading operators for custom types.
+
+// Define a vector type
+struct Vec2 {
+  float x
+  float y
+}
+
+// Overload the + operator
+overload Vec2 {
+  // Vector addition
+  +(a Vec2, b Vec2) -> Vec2 {
+    return {a.x + b.x, a.y + b.y}
+  }
+  
+  // Scalar multiplication
+  *(a Vec2, b float) -> Vec2 {
+    return {a.x * b, a.y * b}
+  }
+  
+  // Equality comparison
+  ==(a Vec2, b Vec2) -> bool {
+    return a.x == b.x && a.y == b.y
+  }
+}
+
+// Usage of overloaded operators
+Vec2 v1 = {1.0, 2.0}
+Vec2 v2 = {3.0, 4.0}
+Vec2 sum = v1 + v2        // {4.0, 6.0}
+Vec2 scaled = v1 * 2.0    // {2.0, 4.0}
+bool equal = v1 == v2     // false
+
+!// 4. Memory Management
+// @since Mint 0.1.1
+// Mint uses a garbage collector for automatic memory management.
+// Variables are automatically cleaned up when they go out of scope.
+
+// Manual memory management is available for performance-critical code
+// @since Mint 0.6.1
+// @experimental
+import unsafe
+
+allocateBuffer(size int) -> &byte {
+  &byte buffer = unsafe.allocate<byte>(size)
+  return buffer  // Caller is responsible for freeing
+}
+
+freeBuffer(buffer &byte) -> void {
+  unsafe.free(buffer)
+}
+
+// Resource management with defer
+// @since Mint 0.3.1
+openFile(path string) -> File {
+  File file = File.open(path)
+  defer file.close()  // Will be called when function exits
+  
+  // Work with the file...
+  return processedFile
+}
+
+!// 6. Reflection
+// @since Mint 0.5.2
+// @experimental
+// Mint provides facilities for examining types and values at runtime.
+
+// Get type information
+Type t = typeof(someValue)
+print(t.name)          // Name of the type
+print(t.size)          // Size in bytes
+print(t.isStruct)      // Check if it's a struct
+
+// Examine struct fields
+if t.isStruct {
+  for field in t.fields {
+    print("Field:", field.name, "Type:", field.type)
+  }
+}
+
+// Dynamic method calls
+method = someObject.getMethod("calculate")
+if method {
+  result = method.invoke(10, 20)
+}
+
+// Create types dynamically
+type = Type.get("User")
+value = type.instantiate()
+value.setField("name", "Alice") 

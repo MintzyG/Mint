@@ -1,0 +1,65 @@
+// user.minty - Tests for user.mint
+// @since Mint 0.3.1
+
+@test
+module UserTests {
+  @test
+  testValidUser() {
+    validUser := User {
+      name: "John Doe",
+      email: "john@example.com",
+      age: 30
+    }
+    
+    isValid, errors := validateUser(validUser)
+    
+    assert(isValid, "Valid user should pass validation")
+    assert(errors.len() == 0, "No errors should be returned for valid user")
+  }
+  
+  @test
+  testInvalidEmail() {
+    invalidUser := User {
+      name: "Jane Doe",
+      email: "invalid-email",  // Missing @
+      age: 30
+    }
+    
+    isValid, errors := validateUser(invalidUser)
+    
+    assert(!isValid, "Invalid email should fail validation")
+    assert(errors.len() == 1, "Exactly one error should be returned")
+    assert(errors[0].contains("Email"), "Error should mention email")
+  }
+  
+  @test
+  testInvalidAge() {
+    minorUser := User {
+      name: "Young User",
+      email: "young@example.com",
+      age: 16
+    }
+    
+    isValid, errors := validateUser(minorUser)
+    
+    assert(!isValid, "Underage user should fail validation")
+    assert(errors.len() == 1, "Exactly one error should be returned")
+    assert(errors[0].contains("18"), "Error should mention age requirement")
+  }
+  
+  @test
+  testCreateVerifiedUser() {
+    result := createVerifiedUser("Alice Smith", "alice@example.com", 25)?
+    
+    assert(result.name == "Alice Smith", "Name should match")
+    assert(result.verified, "User should be verified")
+  }
+  
+  @test
+  testCreateVerifiedUserFailure() {
+    result := createVerifiedUser("Bob", "invalid-email", 20)
+    
+    assertError(result, "Should return an error for invalid email")
+    assert(result.error().contains("Email"), "Error should mention email issue")
+  }
+} 

@@ -1,0 +1,383 @@
+!// Mint Language: Data Types
+!// Version: 0.1.0
+!// @since Mint 0.1.2
+
+!// Table of Contents
+!// 1. Primitive Types
+!// 2. Type Aliases
+!// 3. Collections
+!//    - Slices
+!//    - Tuples
+!//    - Maps
+!//    - Sets
+!// 4. Structs
+!// 5. Enums
+!// 6. Result Types
+!// 7. Visibility Modifiers (Experimental)
+
+!// 1. Primitive Types
+// @since Mint 0.1.2
+// Mint provides a range of built-in primitive data types
+
+// Integer types:
+int    // Default integer type (i32)
+i8, i16, i32, i64, i128  // Signed integers with explicit bit sizes
+u8, u16, u32, u64, u128  // Unsigned integers with explicit bit sizes
+
+// Floating-point types:
+float  // Default floating-point type (f32)
+f32, f64  // Floating-point numbers with explicit precision
+
+// Boolean type:
+bool   // Can be either true or false
+
+// Character type:
+char   // Represents a single UTF-8 character
+
+// String type:
+string  // A sequence of UTF-8 characters
+
+// Path type:
+// @since Mint 0.3.1
+path   // Represents filesystem paths, e.g., path home = /home/user
+
+// Path literals don't require quotes
+path homePath = /home/user
+path configFile = /etc/config.json
+path relativePath = ./src/main.mint
+
+// Basic path operations
+path projectRoot = /home/user/projects
+path sourceFile = projectRoot + /src/main.mint  // Path concatenation
+
+// Checking if a path exists
+bool exists = homePath.exists()
+
+// For comprehensive documentation on the path type and its advanced features,
+// please refer to MintSpecial/pathType.mintdoc
+
+!// 2. Type Aliases
+// @since Mint 0.1.3
+// Type aliases create new names for existing types
+type UserID int   // UserID is now an alias for int
+type EmailAddress string  // EmailAddress is an alias for string
+
+// Using type aliases
+UserID id = 42
+EmailAddress email = "user@example.com"
+
+!// 3. Collections
+!// Slices
+// @since Mint 0.1.4
+// Slices are dynamic arrays that can grow or shrink
+[]int numbers = [1, 2, 3, 4, 5]  // Slice of integers
+[]string names = ["Alice", "Bob", "Charlie"]  // Slice of strings
+[]int empty = []  // Empty slice
+
+// Creating slices with ranges
+[]int subset = numbers[1:3]  // Elements at indices 1 and 2
+[]int copy = numbers[:]  // Copy of the entire slice
+
+// Static arrays (fixed-size)
+static []int fixed = [1, 2, 3]  // Cannot grow or shrink
+
+// Slice operations
+numbers.append(6)  // Add element to end
+numbers.insert(0, 0)  // Insert 0 at index 0
+numbers.remove(2)  // Remove element at index 2
+int last = numbers.pop()  // Remove and return last element
+int len = numbers.len()  // Get slice length
+
+!// Tuples
+// @since Mint 0.1.5
+// Tuples are ordered collections of elements with potentially different types
+(int, string) pair = (42, "answer")  // Tuple with int and string
+(int, int, bool) triple = (1, 2, true)  // Tuple with 3 elements
+
+// Accessing tuple elements
+int first = pair[0]  // Access by index (42)
+string second = pair[1]  // Access by index ("answer")
+
+// Destructuring tuples
+int x, string text = pair  // Unpack all elements
+int a, _, bool flag = triple  // Unpack specific elements, explicitly drop values
+int a = triple // values can be dropped implicitly
+
+// Functions use tuples when returning multiple values
+func(int a, int b) -> (int, int) {
+  return a + b, a * b
+}
+
+// That allows us to do this:
+int sum, int product = func(1, 2)
+
+// Or infer the types in the return
+sum, product := func(1, 2)
+
+// Maybe even drop the second value
+sum, _ := func(1, 2)
+
+// it is not recommended to drop values implicitly, but it is possible
+// leave it only for the language to do it
+
+!// Maps
+// @since Mint 0.2.1
+// Maps are unordered collections of key-value pairs
+map[string]int scores = {"Alice": 95, "Bob": 87}  // Map with string keys and int values
+map[int]string ids = {1: "A001", 2: "B002"}  // Map with int keys and string values
+
+// Map operations
+scores["Charlie"] = 90  // Add new entry
+scores["Bob"] = 92  // Update existing entry
+
+int score, bool exists = scores["Dave"]  // Check if key exists
+
+int score = scores["Alice"]  // Access value by key
+// this above is an example of an implicit drop, since when we access a value from a map a tuple is returned
+// and we only want the value so we implicitly drop the boolean
+score, _ := scores["Alice"] // but this also works
+
+scores.delete("Bob")  // Remove an entry
+int count = scores.len()  // Get number of entries
+
+!// Sets
+// @since Mint 0.3.3
+// Sets are unordered collections of unique elements
+set[int] numbers = {1, 2, 3, 4, 5}  // Set of integers
+set[string] fruits = {"apple", "banana", "orange"}  // Set of strings
+
+// Set operations
+fruits.add("grape")  // Add element
+fruits.remove("banana")  // Remove element
+bool has = fruits.contains("apple")  // Check if element exists
+set[int] union = numbers.union({4, 5, 6})  // Union
+set[int] intersection = numbers.intersection({3, 4, 5, 6})  // Intersection
+int count = fruits.len()  // Get number of elements
+
+!// 4. Structs
+// @since Mint 0.1.6
+// Structs group related data under a single type
+struct User {
+  string name
+  int age
+  bool active
+}
+
+// Creating struct instances
+User user1 = {"Alice", 30, true}  // Positional initialization
+User user2 = {name: "Bob", age: 25, active: false}  // Named initialization
+
+// Accessing struct fields
+string name = user1.name
+int age = user1.age
+user2.active = true  // Modify a field (assuming user2 is mutable)
+
+// Nested structs
+struct Address {
+  string street
+  string city
+  string country
+}
+
+struct Contact {
+  string name
+  Address address
+}
+
+Contact contact = {
+  "Alice",
+  {"123 Main St", "Anytown", "Exampleland"}
+}
+
+string city = contact.address.city  // Accessing nested fields
+
+!// 5. Enums
+// @since Mint 0.2.2
+// Enums define a type with a fixed set of named integer constants
+enum Color {
+  Red    // implicitly 0
+  Green  // implicitly 1
+  Blue   // implicitly 2
+  Yellow // implicitly 3
+}
+
+// Enums can also have explicit values
+enum HttpStatus {
+  OK = 200
+  Created = 201
+  NotFound = 404
+  ServerError = 500
+}
+
+// Using enums
+Color primaryColor = Color.Red       // Red has value 0
+HttpStatus success = HttpStatus.OK   // OK has value 200
+
+// Enums automatically convert to integers
+int statusCode = HttpStatus.NotFound // statusCode is 404
+bool isError = statusCode >= 400     // true
+
+// Getting the integer value explicitly
+int redValue = Color.Red.value()     // 0
+
+// Enums in control flow
+match primaryColor {
+  Color.Red -> print("Stop")
+  Color.Green -> print("Go")
+  Color.Yellow -> print("Caution")
+  _ -> print("Unknown color")
+}
+
+// You can convert an integer back to an enum
+HttpStatus status = HttpStatus.fromInt(200)  // OK
+HttpStatus unknownStatus = HttpStatus.fromInt(418)  // Error or default value
+
+!// 6. Result Types
+// @since Mint 0.2.2
+// Mint provides a built-in result type for error handling.
+
+// Result types use angle bracket syntax with a semicolon separating the success values from the error:
+// <...T;E> where T can be one or more types and E is typically 'error'
+
+// Single value result type
+<int;error> singleResult;  // Can hold either an int or an error
+
+// Multiple value result types
+<int,string;error> multiResult;  // Can hold an int and string pair, or an error
+<string,int,bool;error> tripleResult;  // Can hold three values or an error
+
+// Function returning a result type with a single value
+getValue() -> <int;error> {
+  if someCondition {
+    return 42  // Success case
+  } else {
+    return error("Failed to get value")  // Error case
+  }
+}
+
+// Function returning multiple values
+getCoordinates() -> <int,int;error> {
+  if validLocation {
+    return 10, 20  // Return x, y coordinates on success
+  } else {
+    return error("Invalid location")  // Return error
+  }
+}
+
+// Function returning three values
+getUserData() -> <string,int,bool;error> {
+  if userExists {
+    return "Alice", 30, true  // name, age, active status
+  } else {
+    return error("User not found")
+  }
+}
+
+// Working with result types
+<int;error> result = getValue()
+
+// Check if successful using 'is ok' or 'is err'
+if result is ok {
+  print("Success:", result.value)  // Access value with .value
+} else {
+  print("Error:", result.error)  // Access error with .error
+}
+
+// Working with multiple value results
+<int,int;error> coords = getCoordinates()
+if coords is ok {
+  // Access multiple values with .value1, .value2, etc.
+  print("X:", coords.value1, "Y:", coords.value2)
+} else {
+  print("Error:", coords.error)
+}
+
+// Pattern matching with result types
+match result {
+  ok value -> print("Success:", value)
+  err msg -> print("Error:", msg)
+}
+
+// Pattern matching with multiple value results
+match coords {
+  ok x, y -> print("Coordinates:", x, y)
+  err msg -> print("Error:", msg)
+}
+
+// The ? operator for error propagation
+processData() -> <string;error> {
+  // Unwrap a single value or propagate error
+  int value = getValue()?
+  
+  // Unwrap multiple values or propagate error
+  int x, int y = getCoordinates()?
+  
+  return "Processed: " + x.toString() + ", " + y.toString()
+}
+
+// For more details on working with result types and error handling,
+// see the Error Handling documentation (5_ErrorHandling.mintdoc).
+
+!// 7. Visibility Modifiers (Experimental)
+// @since Mint 0.4.2
+// @experimental
+// EXPERIMENTAL FEATURE: May change in future versions
+
+// Mint uses naming conventions for controlling visibility:
+// - Names without a prefix are public (accessible from any file)
+// - Names with a leading underscore (_) are private to all files but the one they are declared in
+// - Names with a leading m underscore (m_) are module-private (accessible only within the same module)
+
+struct Person {
+  string name     // Public field, accessible from anywhere
+  int Age         // Public field, accessible from anywhere, capitalization doesn't affect anything
+  bool _active    // Completely Private field, only accessible within Person methods
+  string m_notes   // Module-private, accessible within this module normally but not from other modules, only through Person methods
+}
+
+// The struct itself can be different visibilities
+// Example: struct _a { string a } // This is a private struct, only accessible within the same file
+// Example: struct m_a { string a } // This is a module-private struct, only accessible within the same module
+
+// Example of accessing fields:
+Person p = {"Alice", 30, true, "Some notes"}
+string n = p.name    // Valid, public field
+int a = p.age        // Valid, public field
+bool act = p._active // ERROR - cannot access private field
+string notes = p.m_notes // Valid only within the same module, error in other modules
+
+// The same visibility rules apply to functions and other declarations
+square(int x) -> int {
+  return x * x
+} // Public function, accessible from anywhere
+
+_calculateTax(float amount) -> float {
+  return amount * 0.2
+} // Private function, accessible only within this file
+
+m_ProcessData(int[] data) -> int[] {
+  // Implementation
+} // Module-private function, accessible only within this module
+
+// We have no visibility modifiers for variables, unless they are top level (outside of functions)
+// Variables with leading underscores are unreachable from outside their scope
+int publicVar = 0 // Public variable, accessible from anywhere
+int _counter = 0 // Only accessible within this file
+int _ModuleVar = 0 // Only accessible within this module
+
+// Meaning that if we have a function:
+my_func(int a) -> int {
+  int _b = 0 // This has no effect at all on the variable
+  return a + b
+}
+
+// This naming convention applies to all declarations:
+// - Functions
+// - Struct fields
+// - Global variables
+// - Type definitions
+// - Constants
+
+// Note: This convention replaces explicit visibility modifiers like 'public' and 'private'
+// found in other languages, making the code more concise while still maintaining
+// encapsulation principles. 

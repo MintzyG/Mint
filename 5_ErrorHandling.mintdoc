@@ -1,0 +1,228 @@
+!// Mint Language: Error Handling
+!// Version: 0.1.0
+!// @since Mint 0.2.1
+
+!// Table of Contents
+!// 1. Error Type
+!// 2. Error Propagation Patterns
+!//    - Traditional Error Checking
+!//    - Using the ? Operator
+!//    - Pipe Operator Combinations
+!// 3. Errorspaces
+
+!// 1. Error Type
+// @since Mint 0.2.1
+// Mint provides a built-in error type for representing error conditions
+
+// Basic error creation
+error err = error("Something went wrong")
+print(err) // "Something went wrong"
+
+// Error return from functions
+validateAge(age int) -> error {
+  if age < 0 {
+    return error("Age cannot be negative")
+  }
+  if age > 150 {
+    return error("Age is unrealistically high")
+  }
+  return nil // No error
+}
+
+// Usage
+error err = validateAge(200)
+if err {
+  print("Validation failed:", err)
+}
+
+// Custom error types
+// @since Mint 0.3.1
+type NetworkError error
+type ValidationError error
+
+NetworkError netErr = NetworkError("Connection refused")
+ValidationError valErr = ValidationError("Invalid input")
+
+// Type checking for errors
+handleError(err error) -> void {
+  if err is NetworkError {
+    print("Network error:", err)
+  } else if err is ValidationError {
+    print("Validation error:", err)
+  } else {
+    print("Unknown error:", err)
+  }
+}
+
+// Note: For information on result types, which are used extensively for error handling,
+// see the Result Types section in the Data Types documentation (2_DataTypes.mintdoc).
+
+!// 2. Error Propagation Patterns
+// @since Mint 0.2.3
+// Mint provides several ways to propagate errors up the call stack
+
+// Traditional error checking and propagation
+readConfig(path string) -> <Config;error> {
+  <[]byte;error> data = readFile(path)
+  if data is err {
+    return data.error // Propagate the error
+  }
+  
+  <Config;error> config = parseConfig(data.value)
+  if config is err {
+    return config.error // Propagate the error
+  }
+  
+  return config.value // Return the successful result
+}
+
+// Using the error propagation operator (?)
+// See the Operators section in 1_Basics.mintdoc for details on how ? works
+readConfig(path string) -> <Config;error> {
+  []byte data = readFile(path)? // Unwraps or returns early if error
+  Config config = parseConfig(data)? // Unwraps or returns early if error
+  return config
+}
+
+// Error propagation with multiple return values
+readConfig(path string) -> <[]byte;error> {
+  []byte data = readFile(path)? // returns error if error
+  Config config = parseConfig(data)? // returns error if error
+  return config
+}
+
+// Combining pipe operators with error propagation
+// @since Mint 0.3.2
+readConfig(path string) -> <Config;error> {
+  return readFile(path)?
+    |> parseConfig()?
+    ||> validate()
+} // The ? operator breaks the chain if any step returns an error
+
+// Error handling patterns with ? and pipe operators
+processDocument(path string) -> <Document;error> {
+  return readFile(path)?
+    |> parseMarkdown()?
+    ||> extractMetadata()?
+    ||> validate()?
+    ||> applyTemplates()
+}
+
+// Method chaining with error handling
+getLargestImage(folder string) -> <Image;error> {
+  return listFiles(folder)?
+    |> filterByExtension(".jpg", ".png")
+    |> sortBySize
+    ||> first()
+    ||> handleEmptyResult()
+}
+
+// Combining error propagation with conditional expressions
+getFirstImage(folder string) -> <Image;error> {
+  return listFiles(folder)?
+    |> filterByExtension(".jpg", ".png")
+    ||> isEmpty() ? error("No images found") : nil
+    ||> first()
+}
+
+// Using method calls with error propagation
+processUserInput(input string) -> <Result;error> {
+  return parseInput(input)
+    ||> validate()
+    ||> transform()
+    ||> handleErrors()
+}
+
+!// 3. Errorspaces
+// @since Mint 0.4.1
+// @experimental
+// Errorspaces provide a way to add context to errors by automatically prefixing error messages.
+// This helps with error tracing and debugging by clearly indicating where an error originated.
+
+!// Basic Errorspace Usage
+// Declare an errorspace at the beginning of a function to prefix all errors created in that function:
+
+calculateAge(birthYear int) -> (int, error) {
+  errorspace("AgeCalculator: ") // Define errorspace for this function
+  
+  if birthYear <= 0 {
+    return 0, error("Invalid birth year") // Error will be: "AgeCalculator: Invalid birth year"
+  }
+  
+  if birthYear > currentYear() {
+    return 0, error("Birth year cannot be in the future") // Also prefixed with "AgeCalculator: "
+  }
+  
+  return currentYear() - birthYear, nil
+}
+
+!// Errorspace Propagation
+// By default, errorspaces don't propagate through function calls - the innermost function's
+// errorspace takes precedence when an error is first created.
+
+// Function that creates an error
+validateUser(user User) -> error {
+  errorspace("Validation: ")
+  if user.age < 18 {
+    return error("User must be at least 18 years old") // "Validation: User must be at least 18 years old"
+  }
+  return nil
+}
+
+// Function that calls another function
+processUser(user User) -> error {
+  errorspace("Processing: ")
+  
+  // The error from validateUser keeps its original errorspace prefix
+  error err = validateUser(user)
+  if err {
+    return err // Still "Validation: User must be at least 18 years old"
+  }
+  
+  // This error gets the current function's errorspace
+  return error("Unknown error") // "Processing: Unknown error"
+}
+
+!// Errorspace Override with precedence()
+// Sometimes you want to override existing errorspaces when propagating errors.
+// Use precedence() to make the current errorspace override any existing ones:
+
+wrapError(err error) -> error {
+  errorspace("Critical: ").precedence()
+  return err // Original errorspace is replaced with "Critical: "
+}
+
+// Example showing how precedence affects propagation:
+func1() -> error {
+  errorspace("Database: ")
+  return error("Connection failed") // "Database: Connection failed"
+}
+
+func2() -> error {
+  errorspace("API: ")
+  return func1() // Error remains "Database: Connection failed"
+}
+
+func3() -> error {
+  errorspace("System: ").precedence()
+  return func1() // Error becomes "System: Connection failed"
+}
+
+!// Errorspace Chaining
+// Errorspaces can be chained to create a path-like context for debugging.
+// Use the chain() method to append rather than replace:
+
+outerFunction() -> error {
+  errorspace("Outer: ").chain()
+  return middleFunction() // Will result in "Outer: Middle: Inner: Error message"
+}
+
+middleFunction() -> error {
+  errorspace("Middle: ").chain()
+  return innerFunction()
+}
+
+innerFunction() -> error {
+  errorspace("Inner: ")
+  return error("Error message")
+}

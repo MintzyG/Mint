@@ -1,0 +1,129 @@
+// math.minty - Tests for math.mint
+// @since Mint 0.2.7
+
+import MathUtils from "math.mint"
+
+@test
+module MathUtilsTests {
+  @test
+  testSqrt() {
+    // Test valid inputs
+    result := MathUtils.sqrt(16.0)?
+    assertFloat(result, 4.0, 0.0001, "Square root of 16 should be 4")
+    
+    result = MathUtils.sqrt(2.0)?
+    assertFloat(result, 1.4142, 0.001, "Square root of 2 should be approximately 1.4142")
+    
+    result = MathUtils.sqrt(0.0)?
+    assertFloat(result, 0.0, 0.0001, "Square root of 0 should be 0")
+    
+    // Test invalid input
+    negativeResult := MathUtils.sqrt(-1.0)
+    assertError(negativeResult, "Should return error for negative input")
+    assert(negativeResult.error().contains("negative"), "Error message should mention negative numbers")
+  }
+  
+  @test
+  testSafeDivide() {
+    // Test valid inputs
+    result := MathUtils.safeDivide(10.0, 2.0)?
+    assertFloat(result, 5.0, 0.0001, "10/2 should equal 5")
+    
+    result = MathUtils.safeDivide(7.0, 3.0)?
+    assertFloat(result, 2.3333, 0.001, "7/3 should be approximately 2.33")
+    
+    // Test division by zero
+    divByZero := MathUtils.safeDivide(5.0, 0.0)
+    assertError(divByZero, "Should return error for division by zero")
+    assert(divByZero.error().contains("zero"), "Error message should mention division by zero")
+  }
+  
+  @test
+  testFactors() {
+    // Test various inputs
+    factors12 := MathUtils.factors(12)
+    assertArrayEquals(factors12, [1, 2, 3, 4, 6, 12], "Factors of 12 incorrect")
+    
+    factorsPrime := MathUtils.factors(17)
+    assertArrayEquals(factorsPrime, [1, 17], "Factors of prime number 17 incorrect")
+    
+    factorsZero := MathUtils.factors(0)
+    assertArrayEquals(factorsZero, [], "Factors of 0 should be empty")
+    
+    factorsNegative := MathUtils.factors(-5)
+    assertArrayEquals(factorsNegative, [], "Factors of negative number should be empty")
+  }
+  
+  @test
+  testIsPrime() {
+    // Test prime numbers
+    assert(MathUtils.isPrime(2), "2 should be prime")
+    assert(MathUtils.isPrime(3), "3 should be prime")
+    assert(MathUtils.isPrime(5), "5 should be prime")
+    assert(MathUtils.isPrime(17), "17 should be prime")
+    assert(MathUtils.isPrime(97), "97 should be prime")
+    
+    // Test non-prime numbers
+    assert(!MathUtils.isPrime(1), "1 should not be prime")
+    assert(!MathUtils.isPrime(4), "4 should not be prime")
+    assert(!MathUtils.isPrime(6), "6 should not be prime")
+    assert(!MathUtils.isPrime(15), "15 should not be prime")
+    assert(!MathUtils.isPrime(100), "100 should not be prime")
+    
+    // Test negative numbers and zero
+    assert(!MathUtils.isPrime(0), "0 should not be prime")
+    assert(!MathUtils.isPrime(-7), "Negative numbers should not be prime")
+  }
+  
+  @test
+  testPower() {
+    // Test valid inputs
+    result := MathUtils.power(2.0, 3.0)?
+    assertFloat(result, 8.0, 0.0001, "2^3 should equal 8")
+    
+    result = MathUtils.power(3.0, 2.0)?
+    assertFloat(result, 9.0, 0.0001, "3^2 should equal 9")
+    
+    result = MathUtils.power(4.0, 0.5)?
+    assertFloat(result, 2.0, 0.0001, "4^0.5 should equal 2")
+    
+    // Test negative base with integer exponent (valid)
+    result = MathUtils.power(-2.0, 3.0)?
+    assertFloat(result, -8.0, 0.0001, "(-2)^3 should equal -8")
+    
+    // Test negative base with fractional exponent (invalid)
+    invalidResult := MathUtils.power(-4.0, 0.5)
+    assertError(invalidResult, "Should return error for negative base with fractional exponent")
+  }
+  
+  @test
+  testGcd() {
+    // Test valid inputs
+    assert(MathUtils.gcd(12, 8) == 4, "GCD of 12 and 8 should be 4")
+    assert(MathUtils.gcd(17, 5) == 1, "GCD of 17 and 5 should be 1")
+    assert(MathUtils.gcd(0, 5) == 5, "GCD of 0 and 5 should be 5")
+    assert(MathUtils.gcd(5, 0) == 5, "GCD of 5 and 0 should be 5")
+    
+    // Test negative numbers
+    assert(MathUtils.gcd(-12, 8) == 4, "GCD of -12 and 8 should be 4")
+    assert(MathUtils.gcd(12, -8) == 4, "GCD of 12 and -8 should be 4")
+    assert(MathUtils.gcd(-12, -8) == 4, "GCD of -12 and -8 should be 4")
+  }
+  
+  // Helper assertions
+  assertFloat(float actual, float expected, float epsilon, string message) {
+    diff := (actual - expected).abs()
+    assert(diff <= epsilon, message + 
+      " (expected: " + expected.toString() + ", actual: " + actual.toString() + ")")
+  }
+  
+  assertArrayEquals([]int actual, []int expected, string message) {
+    assert(actual.length() == expected.length(), 
+      message + " - arrays have different lengths")
+    
+    for i := 0; i < actual.length(); i++ {
+      assert(actual[i] == expected[i], 
+        message + " - elements at index " + i.toString() + " differ")
+    }
+  }
+} 

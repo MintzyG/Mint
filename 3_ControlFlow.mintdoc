@@ -1,0 +1,287 @@
+!// Mint Language: Control Flow
+!// Version: 0.1.0
+!// @since Mint 0.2.1
+
+!// Table of Contents
+!// 1. Conditional Statements
+!// 2. Loops
+!// 3. Pattern Matching
+!// 4. Switch Statements
+!// 5. Labels and Jumps
+
+!// 1. Conditional Statements
+// @since Mint 0.2.1
+// `if`, `elif`, and `else` are used for branching logic.
+
+int x = 10
+if x > 10 {
+  print("Greater than 10")
+} elif x == 10 {
+  print("Exactly 10")
+} else {
+  print("Less than 10")
+}
+
+// Conditions must evaluate to a boolean value.
+
+// If statements can include initialization
+if int y = getValue(); y > 0 {
+  print("Positive value:", y)
+} else {
+  print("Non-positive value:", y)
+}
+// Note that y is only accessible within the if-else block
+
+
+!// 2. Loops
+// @since Mint 0.2.2
+// Mint provides different loop constructs for repeated execution.
+
+!// For Loop
+// Used for iterating over ranges.
+
+for int i = 0; i < 5; i += 1 {
+  print(i)
+}
+
+// for also works as a while loop
+
+for i < 5 {
+  print(i)
+  i += 1
+}
+
+// for also can exist without the init and condition
+
+for i < 5; i++ {
+  print(i)
+}
+
+// or run forever
+
+for {
+  print("forever")
+}
+
+// `for` also works with lists:
+
+[]int numbers = [1, 2, 3, 4, 5]
+for num in numbers {
+  print(num)
+}
+
+// This iterates over all elements in `numbers`.
+
+!// While Loop
+// @since Mint 0.2.2
+// Runs as long as the condition remains true.
+
+int i = 0
+while i < 5 {
+  print(i)
+  i += 1
+}
+
+// Ensures execution only when the condition holds.
+
+
+!// While Loop with Collection Iteration
+// @since Mint 0.3.2
+// `while x in list` retrieves and checks an item's boolean value.
+
+[]int numbers = [1, 0, 1]
+while num in numbers {
+  print(num) // Will only print `1`, ignoring `0` since `false` stops execution.
+}
+
+// Unlike `for in`, which iterates through all items, `while in` stops at the first `false`.
+
+
+!// Loop Control
+// @since Mint 0.2.2
+// `break` exits a loop entirely.
+// `continue` skips the current iteration.
+
+int count = 0
+while count < 10 {
+  count += 1
+  if count == 5 { continue } // Skips printing 5
+  if count == 8 { break } // Stops the loop at 8
+  print(count)
+}
+
+!// 3. Pattern Matching with `match`
+// @since Mint 0.2.3
+// `match` is a powerful way to handle multiple cases.
+
+int x = 5
+match x {
+  0 -> print("Zero")
+  1..10 -> print("Between 1 and 10")
+  _ -> print("Other value")
+}
+
+// `_` serves as a wildcard, matching any other value.
+
+// `match` supports multiple patterns for a single case
+match x {
+  0, 2, 4, 6, 8 -> print("Even single digit")
+  1, 3, 5, 7, 9 -> print("Odd single digit")
+  _ -> print("Multiple digits or negative")
+}
+
+// `match` supports tuples for multiple conditions.
+
+int x = 1
+int y = 0
+match x, y {
+  _, 0 -> print("Second value is zero")
+  0, _ -> print("First value is zero")
+  0, 0 -> print("Both are zero")
+  _, _ -> print("Any other combination")
+}
+
+// Tuples also match directly and are automatically unpacked:
+(int, int) z = (x, y)
+match z {
+  _, 0 -> print("Tuple where second value is zero")
+  0, _ ->
+    print("Tuple where first value is zero")
+    print("Extra logic")
+  0, 0 -> print("Tuple where both are zero")
+  _, _ -> print("Any other tuple")
+}
+
+// This allows destructuring and efficient pattern-based handling.
+
+// Pattern matching with structs
+struct Point {
+  int x
+  int y
+}
+
+Point p = {10, 20}
+
+match p {
+  {0, 0} -> print("Origin")
+  {x, 0} -> print("On X axis at", x)
+  {0, y} -> print("On Y axis at", y)
+  {x, y} if x == y -> print("On diagonal at", x)
+  _ -> print("At coordinates", p.x, p.y)
+}
+// this is also an example of guard clauses
+
+!// 4. Switch Statements (Rarely Used)
+// @since Mint 0.2.1
+// @deprecated("Use match statements instead", "Will be removed in Mint 1.0")
+// Mint supports `switch`, which falls through by default.
+
+switch x {
+  0 -> print("Zero")
+  1 -> print("One")
+  2 -> print("Two")
+  _ -> print("Other value")
+}
+
+// If you want to stop execution in a case, use `break`.
+
+switch x {
+  0 -> print("Zero")
+  1 ->
+    print("One")
+    break
+  2 -> print("Two") 
+  _ -> print("Other value")
+}
+
+// `match` is preferred because it supports pattern matching and tuples.
+
+!// 5. Labels and Jumps
+// @since Mint 0.3.1
+// Mint allows you to label statements and use those labels for more precise control flow.
+
+!// Labeled Loops
+// You can add labels to loops to break or continue from nested loops.
+
+outer: for int i = 0; i < 5; i += 1 {
+  inner: for int j = 0; j < 5; j += 1 {
+    if i == 2 && j == 2 {
+      break :outer // Breaks out of the outer loop completely
+    }
+    print(i, j)
+  }
+}
+
+// Without the label, the break would only exit the innermost loop.
+
+// Continue with labels works similarly
+count: for int i = 0; i < 10; i += 1 {
+  process: for int j = 0; j < 10; j += 1 {
+    if j % 3 == 0 {
+      continue :count // Skip to the next iteration of the outer loop
+    }
+    print(i, j)
+  }
+}
+
+!// Return Labels
+// @since Mint 0.3.1
+// You can label return statements to specify which function to return from in nested functions.
+
+outerFunction() -> int {
+  int result = 0
+  
+  () {
+    if someCondition {
+      return :outerFunction 42// Returns from outerFunction with value 42
+    }
+    // Normal code here
+  }
+  
+  innerFunction()
+  return result
+}
+
+!// Jump Operator
+// @since Mint 0.3.4
+// @experimental
+// The jmp operator allows you to jump to a labeled statement.
+
+processItems(items []int) -> void {
+  int i = 0
+  
+  start: 
+  if i >= items.len() {
+    return
+  }
+  
+  if items[i] < 0 {
+    i += 1
+    jmp :start // Jump back to the start label
+  }
+  
+  processItem(items[i])
+  i += 1
+  jmp :start
+}
+
+// This provides a form of goto-like functionality, but restricted to labeled statements
+// to prevent the confusion and errors associated with unrestricted gotos.
+
+// The jmp operator should be used sparingly, as it can make code harder to follow.
+// In most cases, regular loops and conditionals will provide clearer code structure.
+
+// Example of a loop implemented with jmp:
+calculateSum(numbers []int) -> int {
+  int i = 0
+  int sum = 0
+  
+  loop:
+  if i < numbers.len() {
+    sum += numbers[i]
+    i += 1
+    jmp :loop
+  }
+  
+  return sum
+}

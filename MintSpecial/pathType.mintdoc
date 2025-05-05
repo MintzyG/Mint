@@ -1,0 +1,287 @@
+!// Mint Language: Path Type Documentation
+!// Version: 0.1.0
+!// @since Mint 0.3.1
+
+!// Table of Contents
+!// 1. Path Type Overview
+!// 2. Path Literals and Basic Operations
+!// 3. Path Properties and Components
+!// 4. File Operations
+!// 5. Directory Operations
+!// 6. Path Navigation and Traversal
+!// 7. Path Matching and Searching
+!// 8. File System Monitoring
+!// 9. Path Conversion and Manipulation
+!// 10. Advanced Path Operations
+
+!// 1. Path Type Overview
+// @since Mint 0.3.1
+// The path type in Mint is a first-class citizen for working with filesystems.
+// It provides a convenient, type-safe way to handle file paths without using strings.
+
+// Path is a built-in primitive type
+path   // Represents filesystem paths
+
+// Path literals can be written without quotes
+path homePath = /home/user             // Absolute path
+path relativePath = ./src/main.mint    // Relative path
+path currentDir = .                    // Current directory
+path parentDir = ..                    // Parent directory
+
+// Paths can be typed directly in code without escaping or quoting
+echo(/home/user/file.txt)  // Pass a path literal directly to a function
+
+!// 2. Path Literals and Basic Operations
+// @since Mint 0.3.1
+// Path concatenation using the + operator
+path projectRoot = /home/user/projects
+path srcDir = projectRoot + /src                // /home/user/projects/src
+path mainFile = srcDir + /main.mint             // /home/user/projects/src/main.mint
+path configFile = projectRoot + /config + .json // /home/user/projects/config.json
+
+// Path component access
+path file = /home/user/projects/src/main.mint
+string filename = file.filename()       // "main.mint"
+string dirname = file.dirname()         // "/home/user/projects/src"
+string extension = file.extension()     // ".mint"
+string basename = file.basename()       // "main" (filename without extension)
+
+// Path normalization
+path p1 = /home/user/../user/./projects
+path p2 = p1.normalize()                // /home/user/projects
+
+// Path comparison
+bool isEqual = (/home/user/a == /home/user/a)   // true
+bool isNotEqual = (/home/user/a != /home/user/b) // true
+
+!// 3. Path Properties and Components
+// @since Mint 0.3.2
+// Checking path properties
+bool exists = homePath.exists()           // Check if path exists in the filesystem
+bool isDir = homePath.isDirectory()       // Check if path is a directory
+bool isFile = configFile.isFile()         // Check if path is a file
+bool isSymlink = linkPath.isSymlink()     // Check if path is a symbolic link
+bool isAbsolute = homePath.isAbsolute()   // Check if path is absolute
+bool isRelative = relativePath.isRelative() // Check if path is relative
+bool isHidden = dotFile.isHidden()        // Check if path is hidden (starts with .)
+
+// Path component access through functions
+string fileName = mainFile.GetFilename()    // "main.mint"
+string dirName = mainFile.GetDirectory()    // "/home/user/projects/src"
+string extension = mainFile.GetExtension() // ".mint"
+string baseName = mainFile.GetBaseName()   // "main" (filename without extension)
+
+// Get other path attributes
+int size = mainFile.GetSize()               // Size in bytes
+Time modTime = mainFile.GetModifiedTime()   // Last modification time
+Time accessTime = mainFile.GetAccessTime()  // Last access time
+Time createTime = mainFile.GetCreateTime()  // Creation time
+string owner = mainFile.GetOwner()          // File owner
+int permissions = mainFile.GetPermissions() // File permissions
+
+// Path decomposition
+[]string components = mainFile.ToComponents() // ["home", "user", "projects", "src", "main.mint"]
+string root = mainFile.GetRoot()             // "/" for Unix paths, "C:" for Windows paths
+int depth = mainFile.GetDepth()              // 5 (number of path components)
+
+!// 4. File Operations
+// @since Mint 0.3.3
+// Reading from files
+string content = configFile.Read()          // Read file content as string
+[]byte binaryContent = configFile.ReadBytes()  // Read file content as bytes
+[]string lines = configFile.ReadLines()     // Read file as lines of text
+
+// Writing to files
+configFile.Write("new content")             // Write string to file
+configFile.WriteBytes(binaryData)           // Write bytes to file
+configFile.WriteLines(["line1", "line2"])   // Write lines to file
+configFile.Append("more content")           // Append to file
+
+// File attributes
+configFile.SetPermissions(0644)             // Set file permissions
+configFile.SetOwner("user", "group")        // Set file owner and group
+bool success = configFile.Remove()          // Delete file
+configFile.Rename("newname.json")           // Rename file
+
+// File copies and links
+path copyPath = configFile.CopyTo(/home/backups/config.json)  // Copy file
+path linkPath = configFile.SymlinkTo(/home/links/config.json) // Create symbolic link
+path hardLinkPath = configFile.HardlinkTo(/home/links/config.json) // Create hard link
+
+!// 5. Directory Operations
+// @since Mint 0.3.4
+// Creating directories
+path newDir = /home/user/newDirectory
+newDir.Mkdir()                             // Create single directory
+newDir.MkdirAll()                          // Create directory and any missing parent directories
+
+// Listing directory contents
+[]path contents = srcDir.List()                      // Get all entries in directory
+[]path dirContents = srcDir.ListDirectories()        // Get only directories
+[]path fileContents = srcDir.ListFiles()             // Get only files
+[]path mintFiles = srcDir.ListByPattern("*.mint")    // Get files matching a pattern
+
+// Directory operations
+bool removed = srcDir.RemoveAll()                    // Remove directory and contents
+bool emptied = srcDir.Empty()                        // Remove contents but keep directory
+srcDir.CopyTo(/home/backups/src)                     // Copy directory recursively
+
+// Working with temporary directories
+path tempDir = path.CreateTempDir("prefix")          // Create temporary directory
+defer tempDir.RemoveAll()                            // Clean up temp directory when done
+
+// File and directory permissions
+newDir.SetPermissionsRecursive(0755)                 // Set permissions recursively
+
+!// 6. Path Navigation and Traversal
+// @since Mint 0.3.5
+// Directory navigation with functions
+path projectDir = /home/user/projects
+path srcDir = projectDir.Navigate("src")               // Navigate to /home/user/projects/src
+path mainFile = srcDir.Navigate("main.mint")           // Navigate to /home/user/projects/src/main.mint
+path deepFile = projectDir.Navigate("src/main.mint")   // Navigate through multiple levels at once
+
+// Navigate to parent directories
+path currentFile = /home/user/projects/src/main.mint
+path srcDir = currentFile.Parent()                   // Go up one level to /home/user/projects/src
+path projectDir = currentFile.Parent().Parent()      // Go up two levels to /home/user/projects
+path homeDir = currentFile.Parent(3)                 // Go up three levels to /home/user
+
+// Path utilities for navigation
+path parent = someDir.GetParent()                    // Get parent directory
+path child = someDir.GetChild("src")                 // Get child path
+bool hasChild = someDir.HasChild("src")              // Check if a child path exists
+
+// Resolving paths
+path absolute = relativePath.ToAbsolute()            // Convert relative path to absolute
+path relative = absolutePath.ToRelative(/home/user)  // Make path relative to a base path
+path resolved = symlinkPath.Resolve()                // Resolve symlinks
+
+!// 7. Path Matching and Searching
+// @since Mint 0.3.6
+// Simple pattern matching
+[]path mintFiles = srcDir.ListByPattern("*.mint")    // Get files matching a pattern
+[]path configFiles = srcDir.ListByPattern("config.*") // Get files starting with "config"
+
+// Recursive searching with glob patterns
+[]path allMintFiles = projectDir.FindRecursive("**/*.mint")   // All .mint files in any subdirectory
+[]path docFiles = projectDir.FindRecursive("**/docs/**/*.md") // All .md files in any docs directory
+[]path imageFiles = projectDir.FindRecursive("**/*.{png,jpg,jpeg}") // All image files with OR pattern
+
+// Finding files based on predicates
+[]path largeFiles = projectDir.FindWhere((File file) -> bool { 
+  return file.size > 1_000_000 
+})
+[]path recentFiles = projectDir.FindWhere((File file) -> bool { 
+  return file.modifiedTime > Time.yesterday() 
+})
+[]path executable = projectDir.FindWhere((File file) -> bool { 
+  return file.permissions & 0100 != 0
+})
+
+// Advanced searching with multiple criteria
+[]path results = projectDir.FindWhere((File file) -> bool {
+  return file.extension == ".mint" && 
+         file.size < 1000 && 
+         !file.name.startsWith("test")
+})
+
+// Efficient searching with optimized traversal
+[]path results = projectDir.FindWithOptions(
+  pattern: "**/*.{js,ts}",
+  options: {
+    maxDepth: 3,             // Don't go deeper than 3 levels
+    followSymlinks: false,   // Don't follow symbolic links
+    ignorePatterns: ["**/node_modules/**", "**/dist/**"] // Skip these directories
+  }
+)
+
+!// 8. File System Monitoring
+// @since Mint 0.3.7
+// @experimental
+// Watch for file system changes
+projectDir.Watch((event, path) {
+  match event {
+    FileCreated -> print("File created:", path)
+    FileModified -> print("File modified:", path)
+    FileDeleted -> print("File deleted:", path)
+    FileRenamed(oldPath) -> print("File renamed from", oldPath, "to", path)
+  }
+})
+
+// Watch with filtering options
+srcDir.WatchWithOptions(
+  callback: (event, path) {
+    print("Event:", event, "Path:", path)
+  },
+  options: {
+    recursive: true,         // Watch subdirectories too
+    patterns: ["*.mint"],    // Only watch .mint files
+    ignorePatterns: [".*"],  // Ignore hidden files
+    debounceMs: 100          // Debounce events by 100ms
+  }
+)
+
+// Create a cancellable watcher
+Watcher watcher = srcDir.CreateWatcher((event, path) {
+  // Handle events...
+})
+
+// Stop watching later
+watcher.Stop()
+
+!// 9. Path Conversion and Manipulation
+// @since Mint 0.3.8
+// Converting between path and string
+path p = /home/user/file.txt
+string str = p.ToString()          // Convert path to string
+path back = path.FromString(str)    // Convert string back to path
+
+// Path manipulation
+path p = /home/user/projects/src/main.mint
+path withNewExt = p.ReplaceExtension(".js")  // /home/user/projects/src/main.js
+path withNewName = p.ReplaceFilename("index.mint") // /home/user/projects/src/index.mint
+path withNewDir = p.ReplaceDirectory(/opt/app) // /opt/app/main.mint
+
+// Path joining and splitting
+path joined = path.Join("/home", "user", "projects") // /home/user/projects
+[]string parts = somePath.Split()  // Split path into components
+
+// Working with URLs and URIs
+path fromUrl = path.FromUrl("file:///home/user/file.txt") // /home/user/file.txt
+string toUrl = somePath.ToUrl()  // "file:///home/user/file.txt"
+
+!// 10. Advanced Path Operations
+// @since Mint 0.3.9
+// @experimental
+// Path traversal with custom callbacks
+projectDir.Walk((path p, FileInfo info, int depth) -> bool {
+  print("Found:", p, "at depth:", depth)
+  return true  // Continue traversal
+})
+
+// Batch operations
+projectDir.FindAndReplace("*.txt", search: "old text", replace: "new text")
+projectDir.BackupAll("*.{js,ts}", targetDir: /home/backups)
+
+// Path filtering and transformations
+[]path filtered = allPaths.Filter((path p) -> bool { return p.GetExtension() == ".mint" })
+[]path transformed = allPaths.Map((path p) -> path { return p.ReplaceExtension(".js") })
+
+// Safer path operations with file locks
+configFile.WithLock((File file) -> void {
+  string content = file.Read()
+  file.Write(modifiedContent)
+})
+
+// Path collections and sets
+PathSet uniquePaths = PathSet.FromPaths([path1, path2, path3])
+bool contains = uniquePaths.Contains(/home/user/file.txt)
+
+// Working with multiple paths
+bool allExist = path.AllExist([path1, path2, path3])
+bool anyExist = path.AnyExist([path1, path2, path3])
+
+// Path compression and archives
+path archive = someDir.Compress("zip", /home/archives/files.zip)
+path extracted = archivePath.Extract(/home/extracted) 

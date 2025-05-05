@@ -1,0 +1,269 @@
+!// Mint Language: Functions
+!// Version: 0.1.0
+!// @since Mint 0.2.1
+
+!// Table of Contents
+!// 1. Function Declaration
+!// 2. Return Values
+!// 3. Parameters
+!// 4. Methods
+!// 5. Anonymous Functions
+!// 6. Higher-Order Functions
+!// 7. Early Returns
+
+!// 1. Function Declaration
+// @since Mint 0.2.1
+// Functions in Mint are declared using this syntax:
+// function_name(parameters) -> return_type { ... }
+
+// Functions must always specify a return type:
+// - Use nothing for functions that don't return a value
+// - Use -> type for functions that return a single value
+// - Use -> (type1, type2) for functions that return multiple values
+
+// Function with no return value
+greet(string name) {
+  print("Hello,", name)
+}
+
+// Function with a single return value
+add(int a, int b) -> int {
+  return a + b
+}
+
+// Function with no parameters
+getCurrentTime() -> int {
+  return Time.now()
+}
+
+// Main function
+main() {
+  greet("World")
+  print("2 + 3 =", add(2, 3))
+}
+
+// Main with exit code
+main() -> int {
+  if !checkEnvironment() {
+    return 1 // Exit with error code
+  }
+  print("Environment OK")
+  return 0 // Success
+}
+
+!// 2. Return Values
+// @since Mint 0.2.1
+// Functions can return single values, multiple values, or nothing
+
+// Single return value
+square(int n) -> int {
+  return n * n
+}
+
+// Multiple return values
+divideWithRemainder(int dividend, int divisor) -> (int, int) {
+  int quotient = dividend / divisor
+  int remainder = dividend % divisor
+  return quotient, remainder
+}
+
+// Usage:
+int q, r = divideWithRemainder(10, 3) // q = 3, r = 1
+
+// Since the multiple return values are a tuple, you can also drop the values
+int quotient, _ = divideWithRemainder(10, 3)
+
+// Or infer the types in the return
+quotient, remainder := divideWithRemainder(10, 3)
+
+// Multiple return values with different types
+parseUserInfo(string input) -> (string, int, bool) {
+  // Parse the input string
+  return "John", 30, true // name, age, isActive
+}
+
+// you can name the return values which automatically creates variables with the same name in that scope
+parseUserInfo(string input) -> (string name, int age, bool isActive) {
+  name = "John" + input
+  age = 30
+  isActive = true
+  // note that we didn't declare them in the body of the function
+  // and we are also not inferring their types and declaring
+  // thats because they were already declared in the function signature
+
+  return name, age, isActive
+} // this is also good practice to make the function more readable and self-documenting
+
+!// 3. Parameters
+// @since Mint 0.2.2
+// Functions can have zero or more parameters
+
+// Multiple parameters
+calculateArea(float width, float height) -> float {
+  return width * height
+}
+
+// Default parameter values
+createUser(string name, int age = 18, bool isActive = true) -> User {
+  return {name, age, isActive}
+}
+
+// Usage with default values:
+User user1 = createUser("Alice") // age = 18, isActive = true
+User user2 = createUser("Bob", 25) // isActive = true
+User user3 = createUser("Charlie", 30, false) // No defaults used
+
+// Named parameters
+connect(string host, int port = 8080, string protocol = "http") -> Connection {
+  // Create a connection
+}
+
+// Usage with named parameters:
+Connection conn = connect("localhost", protocol: "https") // Uses default port
+
+!// Variadic Functions
+// @since Mint 0.3.1
+// A function can accept a variable number of arguments using ... (spread notation).
+// Variadic parameters must be the last parameter in the function declaration.
+
+sum(int ...numbers) -> int {
+  int total = 0
+  for int n in numbers {
+    total += n
+  }
+  return total
+}
+
+// Usage:
+int result = sum(1, 2, 3, 4, 5) // 15
+
+// Spreading slices into variadic functions
+[]int values = [1, 2, 3, 4, 5]
+int result = sum(...values) // 15
+
+!// 4. Methods
+// @since Mint 0.3.2
+// Methods are functions attached to structs (objects)
+
+struct Rectangle {
+  float width
+  float height
+}
+
+// Method declaration - the struct is specified in parentheses after the parameter list
+area()(Rectangle rect) -> float {
+  return rect.width * rect.height
+}
+
+// Usage:
+Rectangle rect = {10.0, 5.0}
+float area = rect.area() // 50.0
+
+// Methods that modify the struct (mutating methods) use a pointer receiver
+resize(float newWidth, float newHeight)(&Rectangle rect) -> void {
+  rect.width = newWidth
+  rect.height = newHeight
+}
+
+// Usage:
+rect.resize(20.0, 10.0) // rect is now {20.0, 10.0}
+
+!// 5. Anonymous Functions
+// @since Mint 0.3.3
+// Functions can be assigned to variables or passed as arguments without being named
+
+// Anonymous function assignment - no function name
+(int, int) -> int multiply = (int a, int b) -> int {
+  return a * b
+}
+
+// Anonymous function with multiple return values
+(int, int) -> (int, error) divide = (int a, int b) -> (int, error) {
+  if b == 0 {
+    return 0, error("Division by zero")
+  }
+  return a / b, nil
+}
+
+// Usage:
+int product = multiply(4, 5) // 20
+
+// Inline anonymous function directly passed as an argument
+processData(data []int, (int) -> int transformer) -> []int {
+  []int result = []
+  for int item in data {
+    result.append(transformer(item))
+  }
+  return result
+}
+
+// Usage with anonymous function as an argument:
+[]int numbers = [1, 2, 3, 4, 5]
+[]int squares = processData(numbers, (int x) -> int {
+  return x * x
+})
+// squares = [1, 4, 9, 16, 25]
+
+!// 6. Higher-Order Functions
+// @since Mint 0.3.4
+// Functions that take other functions as arguments or return functions
+
+// Function that takes a function as an argument
+apply(int x, (int) -> int f) -> int {
+  return f(x)
+}
+
+// Named function to be passed as an argument
+square(int n) -> int {
+  return n * n
+}
+
+// Usage with a named function:
+int result = apply(5, square) // 25
+
+// Usage with an anonymous function:
+int result = apply(5, (int n) -> int {
+  return n * n
+})
+
+// Function that returns a function
+createMultiplier(int factor) -> (int) -> int {
+  return (int x) -> int {
+    return x * factor
+  }
+}
+
+// Usage with an anonymous function that captures its environment:
+(int) -> int double = createMultiplier(2)
+(int) -> int triple = createMultiplier(3)
+int doubled = double(5) // 10
+int tripled = triple(5) // 15
+
+!// 7. Early Returns with Conditions
+// @since Mint 0.3.5
+// @experimental
+// Mint provides a convenient syntax for early returns with conditions using `return if`.
+// This helps make error handling and validation more concise.
+
+example(int x) -> (int, error) {
+  // Early return if x is negative
+  return if x < 0 -> -1, error("Negative number")
+  
+  x++ // Increment x
+  
+  // Early return if x is not greater than 10
+  return if x > 10 fails -> -1, error("Number too small")
+  
+  // Return the final value if all conditions pass
+  return x, nil
+}
+
+// The `return if` syntax has two forms:
+// 1. `return if condition -> value`
+//    Returns `value` if condition is true
+// 2. `return if condition fails -> value` 
+//    Returns `value` if condition is false
+// This is because the parentheses are not required in condition, so to easily check for fails we use the keyword "fails"
+
+// This makes validation and error handling more readable compared to traditional
+// if-else statements, while maintaining the same functionality. 

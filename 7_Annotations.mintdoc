@@ -1,0 +1,225 @@
+!// Mint Language: Annotations and Struct Tags
+!// Version: 0.1.0
+!// @since Mint 0.5.3
+
+!// Table of Contents
+!// 1. Annotations
+!//    - Built-in Annotations
+!//    - Custom Annotations
+!//    - Annotation Targets
+!// 2. Struct Tags
+!//    - Tag Syntax
+!//    - Common Tag Uses
+!//    - Reflection with Tags
+
+!// 1. Annotations
+// @since Mint 0.5.3
+// Annotations provide metadata about code elements and can affect how the compiler
+// or runtime processes them. They start with @ and are placed before the element they annotate.
+
+!// Built-in Annotations
+// Mint provides several built-in annotations for common use cases:
+
+// @deprecated - Marks an element as deprecated, generating warnings when used
+@deprecated
+oldFunction() -> void {
+  print("This function will be removed in a future version")
+}
+
+// Usage will generate a compiler warning:
+oldFunction() // Warning: Function 'oldFunction' is deprecated
+
+// @deprecated can include a message and version information
+@deprecated("Use newFunction() instead", "Will be removed in Mint 0.6")
+legacyFunction() -> void {
+  // ...
+}
+
+// @experimental - Indicates a feature is experimental and may change
+@experimental
+betaFeature() -> void {
+  // Implementation might change
+}
+
+// @not_implemented - Marks a feature that is planned but not yet implemented
+@not_implemented
+futureFeature() -> void {
+  panic("This feature is not yet implemented!")
+}
+
+// @since - Documents when a feature was introduced
+@since("Mint 0.3")
+recentFeature() -> void {
+  // Feature added in version 0.3
+}
+
+// @unsafe - Marks code that bypasses safety checks
+@unsafe
+directMemoryAccess(address uintptr) -> byte {
+  // Direct memory manipulation
+  return *address // Unsafe operation
+}
+
+// @compiler_intrinsic - Identifies a function implemented directly by the compiler
+@compiler_intrinsic
+memcpy(dest &byte, src &byte, size uint) -> void {
+  // Actual implementation provided by the compiler
+}
+
+!// Custom Annotations
+// @since Mint 0.5.4
+// You can define custom annotations for your own use cases
+
+// Creating a custom annotation:
+annotation @author(name string, email string)
+
+// Using the custom annotation:
+@author("Jane Doe", "jane@example.com")
+userManagement() -> void {
+  // Implementation...
+}
+
+// Annotations can be used for various purposes:
+annotation @timeout(milliseconds int)
+
+@timeout(5000)
+databaseQuery(query string) -> <Results, error> {
+  // Implementation with timeout logic
+}
+
+// Multiple annotations can be applied to a single element:
+@author("John Smith", "john@example.com")
+@timeout(10000)
+@since("Mint 0.4")
+complexOperation() -> void {
+  // Implementation...
+}
+
+!// Annotation Targets
+// @since Mint 0.5.4
+// Annotations can be applied to various code elements:
+
+// Type annotations
+@serializable
+struct User {
+  string name
+  int age
+}
+
+// Method annotations
+@overrides
+render()(widget &Widget) -> void {
+  // Custom rendering implementation
+}
+
+// Field annotations
+struct Configuration {
+  @required
+  string apiKey
+  
+  @optional
+  int timeout = 30000
+}
+
+// Parameter annotations
+calculateTax(price float, @nullable discount float) -> float {
+  if discount == nil {
+    return price * 0.2
+  }
+  return price * (1 - discount) * 0.2
+}
+
+// For custom annotations, you can specify which targets they're valid for:
+@targets(function, method)
+annotation @cacheable(durationSeconds int = 60)
+
+!// 2. Struct Tags
+// @since Mint 0.5.5
+// Struct tags provide metadata for struct fields, often used for serialization,
+// validation, or database mapping.
+
+!// Tag Syntax
+// Tags are string literals attached to struct fields
+
+struct User {
+  string name `json:"name" validate:"required"`
+  int age `json:"age,omitempty" validate:"min=18"`
+  []string hobbies `json:"hobbies" db:"hobbies_list"`
+}
+
+// Multiple tags can be specified for each field, separated by spaces.
+// Each tag has a key and a value, separated by a colon.
+// Additional options are separated by commas.
+
+!// Common Tag Uses
+// @since Mint 0.5.5
+
+// JSON serialization/deserialization
+struct Product {
+  string id `json:"product_id"` // Custom field name
+  string name `json:"name"`
+  float price `json:"price"`
+  bool inStock `json:"in_stock,omitempty"` // Omit if empty
+  []string tags `json:"-"` // Exclude from JSON
+}
+
+// Database mapping
+struct Employee {
+  string id `db:"id,primarykey"`
+  string name `db:"full_name"`
+  string department `db:"dept_id,foreignkey"`
+  Time hireDate `db:"hire_date,notnull"`
+}
+
+// Form validation
+struct LoginForm {
+  string username `validate:"required,min=3,max=50"`
+  string password `validate:"required,min=8"`
+  string email `validate:"email,required"`
+}
+
+// Configuration mapping
+struct ServerConfig {
+  string host `config:"SERVER_HOST" default:"localhost"`
+  int port `config:"SERVER_PORT" default:"8080"`
+  string logLevel `config:"LOG_LEVEL" default:"info"`
+}
+
+!// Reflection with Tags
+// @since Mint 0.5.6
+// Tag values can be accessed at runtime using reflection
+
+// Getting tag values:
+struct Post {
+  string title `json:"title"`
+}
+
+inspectTags() -> void {
+  type := typeof(Post{})
+  field := type.getField("title")
+  
+  if tag := field.getTag("json"); tag {
+    print("JSON tag value:", tag) // Outputs: "JSON tag value: title"
+  }
+}
+
+// Parsing tag values:
+parseTag(tag string) -> map[string]string {
+  // Implementation to parse "key:value,option" format
+}
+
+// Using tags to dynamically validate struct fields:
+validate(obj interface{}) -> []error {
+  // Use reflection to iterate through fields and check validation rules
+  // specified in the "validate" tags
+}
+
+// Creating custom tag-based behavior:
+struct CliCommand {
+  string help `cli:"help" short:"h" description:"Show help information"`
+  bool verbose `cli:"verbose" short:"v" description:"Enable verbose output"`
+}
+
+parseCliArgs(args []string, command &CliCommand) -> error {
+  // Use reflection to parse command line arguments based on struct tags
+} 
