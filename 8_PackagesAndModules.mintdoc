@@ -1,0 +1,256 @@
+!// Mint Language: Packages and Modules
+!// Version: 0.1.0
+!// @since Mint 0.4.0
+
+!// Table of Contents
+!// 1. Package System Overview
+!// 2. Package Structure
+!// 3. Importing Packages
+!//    - Single Imports
+!//    - Multiple Imports
+!//    - Selective Imports
+!// 4. Subpackages
+!// 5. Export Control
+!// 6. Package Initialization
+!// 7. Standard Library Packages
+
+!// 1. Package System Overview
+// @since Mint 0.4.0
+// Mint uses a folder-based package system that provides a convenient way to
+// organize code into reusable, modular components.
+
+// Key characteristics of Mint's package system:
+// - A folder is automatically a package, with the folder name as the package name
+// - All files in the same folder are part of the same package
+// - Packages can contain subpackages (folders within folders)
+// - Imports are automatically recursive, bringing in all public code from a package
+// - When importing, you need to use package qualifiers to access imported functions
+
+// Example project structure:
+// myproject/
+// ├── main.mint             // Root module
+// ├── math/                 // "math" package
+// │   ├── basic.mint        // Basic math functions
+// │   ├── advanced.mint     // Advanced math functions
+// │   └── geometry/         // "geometry" subpackage
+// │       ├── shapes.mint   // Shape calculations
+// │       └── vectors.mint  // Vector operations
+// └── utils/                // "utils" package
+//     ├── strings.mint      // String utilities
+//     └── logging.mint      // Logging functions
+
+!// 2. Package Structure
+// @since Mint 0.4.0
+// A package is simply a directory containing .mint files. All files in a
+// package share the same namespace, allowing functions and types from one file
+// to be used in other files within the same package without explicit imports.
+
+// Example: math/basic.mint
+add(int a, int b) -> int {
+  return a + b
+}
+
+subtract(int a, int b) -> int {
+  return a - b
+}
+
+// Example: math/advanced.mint
+// Functions from basic.mint can be used directly
+square(int x) -> int {
+  return x * x
+}
+
+pythagorean(int a, int b) -> int {
+  return square(a) + square(b) // Using square from the same package
+}
+
+// When organized this way, all functions in the "math" package can see each other,
+// but code outside the package must import it to use these functions.
+
+!// 3. Importing Packages
+// @since Mint 0.4.0
+// To use code from other packages, you need to import them.
+
+!// Single Imports
+// Basic single import
+import math
+
+// After importing, functions are accessed with the package name as prefix
+int sum = math.add(5, 3)      // 8
+int diff = math.subtract(5, 3) // 2
+
+// Single import with alias
+import math as m
+
+// Using the aliased package name
+int sum = m.add(5, 3) // 8
+
+!// Multiple Imports
+// Multiple packages can be imported using a block syntax
+import (
+  math
+  strings
+  time as t
+)
+
+// Each package is used with its name or alias
+int sum = math.add(5, 3)
+string upper = strings.toUpper("hello")
+t.Time now = t.now() // Using the time package with alias t
+
+!// Selective Imports
+// You can selectively import specific functions or types within a package
+import math as m { add, subtract }
+
+// Directly use the imported items without the package prefix
+int sum = add(5, 3)      // 8
+int diff = subtract(5, 3) // 2
+
+// Still use the package alias for other functions
+int product = m.multiply(4, 5) // 20
+
+// Multiple packages with selective imports
+import (
+  math { add, subtract, multiply as mul }
+  strings as str { toUpper, toLower }
+)
+
+// Using the selective imports
+int sum = add(5, 3)        // no prefix needed
+int product = mul(4, 5)    // using alias
+string hello = str.concat("Hello", " World") // accessing other functions with the alias
+
+// You can import an entire package and specific functions in one statement
+import (
+  math as m { add, subtract }
+  time
+  strings as str
+)
+
+// Multiple packages with mixed selective imports and aliases
+import (
+  math { sum, average }
+  time as t
+  os
+)
+
+!// 4. Subpackages
+// @since Mint 0.4.1
+// Packages can contain subpackages, which are simply folders within a package folder.
+// When importing a package, all its subpackages are also imported automatically,
+// similar to header inclusion in C.
+
+// Example: Importing a package with subpackages
+import math
+
+// The main package and all subpackages are available
+int sum = math.add(5, 3)                 // From math/basic.mint
+int area = math.geometry.circleArea(5.0) // From math/geometry/shapes.mint
+
+// Direct imports from subpackages
+import math.geometry
+
+// Now you can access the geometry subpackage directly
+float area = geometry.circleArea(5.0)
+
+// Import from subpackage with aliasing
+import math.geometry as geom
+
+float area = geom.circleArea(5.0)
+
+// This is different from imports inside packages: within a package,
+// you would need to explicitly import a subpackage to use it.
+
+// Example: Inside math/advanced.mint, to use geometry:
+import geometry // relative import from within the same package
+
+!// 5. Export Control
+// @since Mint 0.4.1
+// By default, all declarations (functions, types, constants) are exported
+// and available for import by other packages. To make a declaration private
+// to a package, use the underscore prefix naming convention.
+
+// Example: math/basic.mint
+// Public function (available to importers)
+add(int a, int b) -> int {
+  return a + b
+}
+
+// Private function (only available within the package)
+_validate(int value) -> bool {
+  return value >= 0
+}
+
+// Module-private (available within the current module only)
+m_internalHelper() -> void {
+  // Implementation
+}
+
+// When another package imports "math", it will only see "add", 
+// not "_validate" or "m_internalHelper".
+
+// For more granular control over exports and internal organization,
+// see the Module Organization documentation (9_ModuleOrganization.mintdoc).
+// Modules provide a way to create logical groupings of code within a package,
+// including private modules that are only accessible within the package.
+
+!// 6. Package Initialization
+// @since Mint 0.4.2
+// Packages can contain initialization code that runs when the package is imported.
+// This is done using the init() function.
+
+// Example: database/connection.mint
+mut DB ConnectionPool
+
+// Initialization function runs when the package is imported
+init() {
+  DB = ConnectionPool.create(
+    host: "localhost",
+    port: 5432,
+    user: "admin"
+  )
+  
+  print("Database connection initialized")
+}
+
+// Functions using the initialized DB
+query(string sql) -> <Results;error> {
+  return DB.executeQuery(sql)
+}
+
+// When any module imports the "database" package, the init()
+// function is automatically called before any other code from
+// that module executes.
+
+// Note: If multiple packages have init() functions, they're executed
+// in dependency order - if A imports B, then B's init() runs before A's.
+
+!// 7. Standard Library Packages
+// @since Mint 0.4.0
+// Mint comes with a standard library divided into packages that can be imported.
+
+// Core standard library packages:
+// - core: Basic types and operations
+// - io: Input/output operations
+// - math: Mathematical functions
+// - strings: String manipulation
+// - collections: Advanced data structures
+// - time: Date and time utilities
+// - net: Networking functionality
+// - os: Operating system interaction
+// - fmt: Formatting utilities
+// - path: Path manipulation (built on top of the path type)
+// - crypto: Cryptographic operations
+
+// Importing standard library packages
+import io
+import math
+import os
+
+// Using standard library functions
+file := io.open("/path/to/file.txt")?
+numbers := [1, 2, 3, 4, 5]
+sum := math.sum(numbers)
+currentDir := os.currentDirectory()
+
+// Standard library packages follow the same import rules as user packages 

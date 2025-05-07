@@ -1,0 +1,185 @@
+!// Mint Language: Module Organization
+!// Version: 0.1.0
+!// @since Mint 0.5.0
+
+!// Table of Contents
+!// 1. Module System Overview
+!// 2. Declaring Modules
+!// 3. Module Visibility Rules
+!// 4. Using Modules Within Packages
+!// 5. Package-Module Relationship
+!// 6. Implicit Modules
+!// 7. Best Practices
+
+!// 1. Module System Overview
+// @since Mint 0.5.0
+// Mint's module system provides an additional layer of organization within packages,
+// allowing for finer-grained control over code visibility and organization.
+
+// Key characteristics of modules:
+// - A module is a logical grouping of code within a package
+// - Every file implicitly belongs to a module with the same name as its package
+// - Files can explicitly declare they belong to a different module
+// - Modules can be private to a package, preventing their export
+// - Code from different modules in the same package must be explicitly imported
+
+// Modules help solve the common problem of having implementation details that
+// shouldn't be exported to external users while still making them available to
+// other files within the same package.
+
+!// 2. Declaring Modules
+// @since Mint 0.5.0
+// By default, every file in a package implicitly belongs to a module with the
+// same name as the package. You can override this by explicitly declaring
+// a module at the top of the file.
+
+// Example: explicitly declaring a module
+module utils
+
+// This file now belongs to the "utils" module, even if it's in a different package
+// Functions in this file are part of the utils module's namespace
+
+// Declaring a private module (not exported with package)
+module _internal
+
+// This file belongs to a private module named "_internal"
+// Code in this module is only accessible within the package
+
+// Declaring a module with compound name
+module validation.rules
+
+// This creates a hierarchical module structure
+// Code in this module would be accessed as validation.rules.functionName
+
+!// 3. Module Visibility Rules
+// @since Mint 0.5.0
+// Modules follow these visibility rules:
+
+// Public modules:
+// - Modules without an underscore prefix are public
+// - Public modules are exported with their package
+// - Code from public modules can be accessed by importers of the package
+
+// Private modules:
+// - Modules with a leading underscore (_) are private to the package
+// - Private modules are NOT exported with their package
+// - Code from private modules can only be accessed within the package
+
+// Example file in package "auth":
+module _crypto
+
+// This module is private to the auth package
+encryptPassword(string password) -> string {
+  // Implementation
+}
+
+// When another package imports "auth", it will not have access to any functions
+// in the _crypto module, even though these functions can be used by other files
+// within the auth package.
+
+!// 4. Using Modules Within Packages
+// @since Mint 0.5.1
+// To use code from modules within the same package, you must explicitly
+// import them using the "use" directive.
+
+// Example file in package "auth":
+module userManagement
+use _crypto // Import the private module within the same package
+
+validateUser(User user, string password) -> bool {
+  string hashedPassword = _crypto.encryptPassword(password)
+  return user.passwordHash == hashedPassword
+}
+
+// The "use" directive makes the module's public identifiers available
+// within the current file, similar to an import but for intra-package access.
+
+// You can also use selective imports with modules:
+module api
+use userManagement { validateUser, createUser }
+use _crypto { hashToken }
+
+// Now validateUser, createUser, and hashToken are directly available in this file
+
+!// 5. Package-Module Relationship
+// @since Mint 0.5.1
+// The relationship between packages and modules can be summarized as:
+
+// - A package is a physical organization (directory of files)
+// - A module is a logical organization (related functionality) within a package
+// - Every package has at least one default module with the same name as the package
+// - A package can contain multiple modules
+// - When importing a package, you get access to all its public modules
+// - Private modules are invisible outside the package
+
+// Example package structure with modules:
+// myapp/
+// ├── auth/                 // auth package
+// │   ├── users.mint        // module auth (implicit)
+// │   ├── roles.mint        // module auth (implicit)
+// │   ├── internal.mint     // module _internal (private)
+// │   └── crypto.mint       // module _crypto (private)
+// └── api/                  // api package
+//     ├── routes.mint       // module api (implicit)
+//     ├── handlers.mint     // module api.handlers
+//     └── middleware.mint   // module _middleware (private)
+
+// In this structure, importing the "auth" package would give access to the
+// public "auth" module (users.mint and roles.mint) but not to the _internal
+// or _crypto modules.
+
+!// 6. Implicit Modules
+// @since Mint 0.5.2
+// Every file that doesn't explicitly declare a module belongs to an implicit
+// module with the same name as its package.
+
+// For example, in the "math" package:
+// math/
+// ├── basic.mint        // Implicitly module math
+// ├── advanced.mint     // Implicitly module math
+// └── internal.mint     // Explicitly module _internal (private)
+
+// Both basic.mint and advanced.mint implicitly belong to the "math" module,
+// while internal.mint explicitly belongs to the private "_internal" module.
+
+// When importing the math package:
+import math
+
+// You get access to all code in the public "math" module (basic.mint and advanced.mint)
+// but not to code in the private "_internal" module (internal.mint).
+
+!// 7. Best Practices
+// @since Mint 0.5.2
+// Here are some best practices for using modules effectively:
+
+// 1. Use the default (implicit) module for the primary public API of your package
+//    This keeps imports simple for the most common use cases.
+
+// 2. Use private modules for implementation details that need to be shared
+//    across files within your package but should not be exposed externally.
+
+// 3. Use named modules for specialized functionality within a package that
+//    is only needed for specific use cases.
+
+// 4. Use hierarchical module names (like validation.rules) to create
+//    logical groupings within larger packages.
+
+// 5. Keep module names short and descriptive. Since they'll be used as
+//    prefixes, overly long names can make code harder to read.
+
+// 6. Document which modules are available in a package and their purpose.
+
+// 7. Consider having a single file that re-exports the most commonly used
+//    functions from various modules to create a convenient public API.
+
+// Example of re-exporting:
+module api
+
+// Re-export common functions from other modules
+use api.handlers { handleGet, handlePost }
+use api.validation { validateInput }
+
+// Export these as part of the main api module
+export handleGet
+export handlePost
+export validateInput 

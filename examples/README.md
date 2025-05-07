@@ -10,6 +10,7 @@ This directory contains a collection of examples showcasing various features of 
 - **paths/** - Usage of the first-class path type for file operations
 - **functions/** - Function declarations, parameters, closures, and higher-order functions
 - **control_flow/** - Pattern matching, conditionals, and loops
+- **packages/** - Organizing code with packages, imports, and subpackages
 
 ## Running the Examples
 
@@ -21,6 +22,9 @@ mint run examples/variables/basic_variables.mint
 
 # Run tests
 mint test examples/tests/math.minty
+
+# Run the packages example
+mint run examples/packages/main.mint
 ```
 
 ## Example Highlights
@@ -46,6 +50,33 @@ The `error_handling/` directory demonstrates Mint's powerful error handling capa
 
 - `result_types.mint` - Working with result types and error propagation
 
+### Package System
+
+The `packages/` directory demonstrates Mint's package system:
+
+- `main.mint` - Main program that imports and uses various packages
+- `math/` - Package with mathematical operations
+  - `basic.mint` - Basic math operations
+  - `geometry/` - Subpackage for geometric calculations
+  - `stats/` - Subpackage for statistical functions
+- `utils/` - Utilities package with formatting functions
+- `logger/` - Logging package with different log levels
+- `imports_demo.mint` - Examples of different import syntax styles
+- `auth/` - Authentication package demonstrating module organization
+  - `auth.mint` - Default auth module (implicitly `module auth`)
+  - `crypto.mint` - Private crypto module (`module _crypto`)
+  - `storage.mint` - Private storage module (`module _storage`)
+  - `oauth.mint` - Specialized public OAuth module (`module auth.oauth`)
+- `modules_demo.mint` - Demonstrates module organization and visibility
+
+This example shows how to organize code into packages, import them with different methods (block imports, selective imports, aliases), and work with subpackages. The new simplified import syntax allows for more concise and readable code organization.
+
+The `auth/` package and `modules_demo.mint` demonstrate how to use modules for better organization within packages, including:
+- Default implicit modules (same name as the package)
+- Private modules (using `_` prefix) that are only accessible within the package
+- Specialized public modules for grouping related functionality
+- The `use` directive for importing modules within a package
+
 ## Learning Path
 
 If you're new to Mint, we recommend exploring the examples in this order:
@@ -55,7 +86,8 @@ If you're new to Mint, we recommend exploring the examples in this order:
 3. Explore `error_handling/result_types.mint` to understand error handling
 4. Check out `paths/file_operations.mint` to see the path type in action
 5. Dive into `control_flow/pattern_matching.mint` for advanced control flow techniques
-6. Finally, explore the `.minty` files in `tests/` and `minty_features/` to see their capabilities
+6. Explore the `packages/` directory to understand code organization
+7. Finally, explore the `.minty` files in `tests/` to see their capabilities
 
 ## Contributing
 
