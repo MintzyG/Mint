@@ -1,6 +1,4 @@
 !// Mint Language: Data Types
-!// Version: 0.1.0
-!// @since Mint 0.1.2
 
 !// Table of Contents
 !// 1. Primitive Types
@@ -16,7 +14,6 @@
 !// 7. Visibility Modifiers (Experimental)
 
 !// 1. Primitive Types
-// @since Mint 0.1.2
 // Mint provides a range of built-in primitive data types
 
 // Integer types:
@@ -38,7 +35,6 @@ char   // Represents a single UTF-8 character
 string  // A sequence of UTF-8 characters
 
 // Path type:
-// @since Mint 0.3.1
 path   // Represents filesystem paths, e.g., path home = /home/user
 
 // Path literals don't require quotes
@@ -57,7 +53,6 @@ bool exists = homePath.exists()
 // please refer to MintSpecial/pathType.mintdoc
 
 !// 2. Type Aliases
-// @since Mint 0.1.3
 // Type aliases create new names for existing types
 type UserID int   // UserID is now an alias for int
 type EmailAddress string  // EmailAddress is an alias for string
@@ -89,7 +84,6 @@ int last = numbers.pop()  // Remove and return last element
 int len = numbers.len()  // Get slice length
 
 !// Tuples
-// @since Mint 0.1.5
 // Tuples are ordered collections of elements with potentially different types
 (int, string) pair = (42, "answer")  // Tuple with int and string
 (int, int, bool) triple = (1, 2, true)  // Tuple with 3 elements
@@ -109,7 +103,7 @@ func(int a, int b) -> (int, int) {
 }
 
 // That allows us to do this:
-int sum, int product = func(1, 2)
+int sum, product = func(1, 2)
 
 // Or infer the types in the return
 sum, product := func(1, 2)
@@ -120,8 +114,12 @@ sum, _ := func(1, 2)
 // it is not recommended to drop values implicitly, but it is possible
 // leave it only for the language to do it
 
+// implicit drop example (Please avoid in your code)
+sum := func(1, 2) // product was dropped implicitly
+
+// any implicit drops that are not language specific will receive warnings
+
 !// Maps
-// @since Mint 0.2.1
 // Maps are unordered collections of key-value pairs
 map[string]int scores = {"Alice": 95, "Bob": 87}  // Map with string keys and int values
 map[int]string ids = {1: "A001", 2: "B002"}  // Map with int keys and string values
@@ -141,7 +139,6 @@ scores.delete("Bob")  // Remove an entry
 int count = scores.len()  // Get number of entries
 
 !// Sets
-// @since Mint 0.3.3
 // Sets are unordered collections of unique elements
 set[int] numbers = {1, 2, 3, 4, 5}  // Set of integers
 set[string] fruits = {"apple", "banana", "orange"}  // Set of strings
@@ -155,7 +152,6 @@ set[int] intersection = numbers.intersection({3, 4, 5, 6})  // Intersection
 int count = fruits.len()  // Get number of elements
 
 !// 4. Structs
-// @since Mint 0.1.6
 // Structs group related data under a single type
 struct User {
   string name
@@ -192,7 +188,6 @@ Contact contact = {
 string city = contact.address.city  // Accessing nested fields
 
 !// 5. Enums
-// @since Mint 0.2.2
 // Enums define a type with a fixed set of named integer constants
 enum Color {
   Red    // implicitly 0
@@ -233,7 +228,6 @@ HttpStatus status = HttpStatus.fromInt(200)  // OK
 HttpStatus unknownStatus = HttpStatus.fromInt(418)  // Error or default value
 
 !// 6. Result Types
-// @since Mint 0.2.2
 // Mint provides a built-in result type for error handling.
 
 // Result types use angle bracket syntax with a semicolon separating the success values from the error:
@@ -319,7 +313,6 @@ processData() -> <string;error> {
 // see the Error Handling documentation (5_ErrorHandling.mintdoc).
 
 !// 7. Visibility Modifiers (Experimental)
-// @since Mint 0.4.2
 // @experimental
 // EXPERIMENTAL FEATURE: May change in future versions
 
@@ -380,4 +373,4 @@ my_func(int a) -> int {
 
 // Note: This convention replaces explicit visibility modifiers like 'public' and 'private'
 // found in other languages, making the code more concise while still maintaining
-// encapsulation principles. 
+// encapsulation principles.

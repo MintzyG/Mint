@@ -1,6 +1,4 @@
 !// Mint Language: Basics and Syntax
-!// Version: 0.1.0
-!// @since Mint 0.1.1
 
 !// Table of Contents
 !// 1. Comments and Documentation
@@ -17,7 +15,6 @@
 !//    - Conditional (Ternary) Operator
 
 !// 1. Comments and Documentation
-// @since Mint 0.1.1
 // Comments are made with // for single-line /**/ for multi-line comments.
 // !// for single line doc comments and !/**/ for multi line doc comments.
 
@@ -34,9 +31,8 @@ Comment
 */
 
 !// 2. Basic Syntax
-// @since Mint 0.1.1
 // Whitespace is non-significant in Mint, and indentation is not required.
-// However, the formatter standardizes indentation to 2 spaces.
+// However, the formatter standardizes indentation to 2 spaces and token separation by spaces.
 //
 // Statements are terminated by a newline.
 // To place multiple statements on the same line, use ; as a separator.
@@ -45,7 +41,6 @@ int x = 10; float y = 3.14 // Both statements end normally.
 // A line with multiple statements still needs to end with a new line, ; are used just to separate statements within it
 
 // Numeric literals
-// @since Mint 0.1.2
 // Integer and floating point literals can include underscores for readability
 int largeNumber = 1_000_000            // Same as 1000000
 float pi = 3.141_592_653               // Same as 3.141592653
@@ -56,7 +51,6 @@ float scientific = 6.022_140_76e23     // Scientific notation with underscores
 // The underscores are ignored by the compiler and are purely for readability
 
 !// 3. Variables and Constants
-// @since Mint 0.1.3
 // Variables are immutable by default.
 int x
 int x, y
@@ -66,7 +60,6 @@ int x = 10
 x = 11 // FORBIDDEN - variables are immutable by default
 
 // To declare mutable variables, use mut.
-// @since Mint 0.1.3
 mut int y = 10
 y = 11 // ALLOWED
 
@@ -78,7 +71,6 @@ w := x  // type of w is now int
 // When a scope ends, all variables within it are deleted.
 
 !// Constants
-// @since Mint 0.1.4
 // Constants are values that cannot be changed after declaration
 // They are evaluated at compile time
 const PI = 3.14159
@@ -121,7 +113,6 @@ const m_MAX_MODULE_SIZE = 4096       // Module private constant
 !// 4. Operators
 
 !// Arithmetic Operators
-// @since Mint 0.1.4
 // Used for mathematical operations.
 +   // Addition
 -   // Subtraction
@@ -134,7 +125,6 @@ int sum = 10 + 5     // 15
 int product = 4 * 3  // 12
 
 !// Comparison Operators
-// @since Mint 0.1.4
 // Used to compare values. Returns a boolean result.
 ==  // Equal to
 !=  // Not equal to
@@ -147,7 +137,6 @@ bool isEqual = (10 == 10)  // true
 bool isGreater = (5 > 3)   // true
 
 !// Logical Operators
-// @since Mint 0.1.4
 // Used for boolean logic.
 &&  // Logical AND
 ||  // Logical OR
@@ -157,7 +146,6 @@ bool result = (true && false) // false
 bool negation = !true         // false
 
 !// Bitwise Operators
-// @since Mint 0.1.5
 // Used for bitwise operations.
 &   // Bitwise AND
 |   // Bitwise OR
@@ -170,7 +158,6 @@ int andResult = (5 & 3)   // 1
 int shiftLeft = (4 << 1)  // 8
 
 !// Assignment Operators
-// @since Mint 0.1.5
 // Used for assigning and modifying values.
 =   // Simple assignment
 +=  // Add and assign
@@ -192,8 +179,78 @@ x &= 3  // x is now 3
 
 // These operators help simplify expressions while keeping the code concise. 
 
+!// Error Propagation Operator
+// The ? operator provides concise error handling
+?   // Error propagation operator
+
+// Used after expressions that return a result type or (value, error) tuple
+// If the expression contains an error, the function immediately returns that error
+// If no error, the success value is unwrapped and execution continues
+
+// The operator must be touching the function call or generator expression
+// If a space separates them I.E ("add() ?") that will not be the error propagation operator
+// It will be considered the ternary operator, if the statement is terminated with no ternary a parser error will be issue
+
+testFunc() -> <int, error> {
+  a := add(1, 2)? // executes fine, treated as error propagation
+  a := add(2, 3) ? // parser error, incomplete ternary
+  a := add(3, 4)?7:8 // treated as a ternary since a ternary is complete here
+}
+
+// Basic usage with result types
+Value value = riskyOperation()? // Unwraps result or returns early if error
+
+// When used on a function returning <T, error>:
+readConfig(path string) -> <Config, error> {
+  []byte data = readFile(path)? // If error, returns error. If ok, unwraps to []byte
+  Config config = parseConfig(data)? // Same pattern
+  return config // Only reached if no errors occurred
+}
+
+// When used on a function returning multiple values with error as last value:
+readConfig(path string) -> ([]byte, error) {
+  []byte data = readFile(path)? // If error, returns (nil, error). If ok, unwraps to []byte
+  processConfig(data)? // Continues only if no error
+  return data, nil
+}
+
+// Combining with pipe operators for elegant error handling chains
+processDocument(path string) -> <Document, error> {
+  return readFile(path)?           // Returns early if there's an error
+    |> parseMarkdown()?            // Each step can short-circuit on error
+    ||> validate()?                // Methods can also use error propagation
+    ||> transform()
+}
+
+!// Conditional (Ternary) Operator
+// The ? : operator allows for conditional expressions
+?:  // Conditional operator (ternary)
+
+// Syntax: condition ? valueIfTrue : valueIfFalse
+// Returns one of two values based on a condition
+
+// Basic usage
+int max = a > b ? a : b           // Returns the larger of a and b
+string status = isActive ? "Running" : "Stopped"  // Text based on condition
+
+// Can be used with any expressions that have compatible types
+int result = x > 0 ? x * 2 : -x   // Double positive numbers, negate negative ones
+float discount = isMember ? price * 0.1 : price * 0.05 // Different rates based on membership
+
+// Can be used anywhere an expression is expected
+print("Status: " + (batteryLevel < 10 ? "Critical" : "Normal"))
+
+// Nested ternary operators (use with caution for readability)
+string grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : "F"
+
+// Combining with other operators
+void logMessage(string msg, LogLevel level) {
+  level >= LogLevel.ERROR ?
+    logToConsole(msg) && sendAlert(msg) :
+    logToFile(msg)
+}
+
 !// Pipe Operators
-// @since Mint 0.3.2
 // Used for functional composition and method chaining.
 |>  // Single pipe operator (passes result as first argument to next function)
 ||> // Double pipe operator (calls method on result of previous operation)
@@ -202,9 +259,9 @@ x &= 3  // x is now 3
 // This makes code more intuitive and easier to follow, especially for data transformations
 
 // Basic pipe operator usage
-string processed = "hello world" 
-                |> trim 
-                |> uppercase 
+string processed = "hello world"
+                |> trim
+                |> uppercase
                 |> reverse
 // Equivalent to: reverse(uppercase(trim("hello world")))
 
@@ -212,7 +269,7 @@ string processed = "hello world"
 []int numbers = [1, 2, 3, 4, 5]
                |> sort
                ||> isEmpty()  // Calls isEmpty() method on the sorted array
-               
+
 // The double pipe makes method chaining more intuitive:
 // Instead of: (numbers |> sort).isEmpty()
 // You can use: numbers |> sort ||> isEmpty()
@@ -224,7 +281,7 @@ int result = 5 |> add(3) |> multiply(2)
 // The value on the left becomes the first argument
 
 // Double pipe with method parameters
-Path files = folder 
+Path files = folder
            |> getFiles
            ||> filter("*.mint")
            ||> sort("modified_date", "desc")
@@ -258,67 +315,4 @@ readFile(path)?
 getImage(path)
   ||> resize(width > 1000 ? width / 2 : width, height)
   ||> blur(userPreference || DEFAULT_BLUR)
-  ||> save(path + ".processed") 
-
-!// Error Propagation Operator
-// @since Mint 0.2.1
-// The ? operator provides concise error handling
-?   // Error propagation operator
-
-// Used after expressions that return a result type or (value, error) tuple
-// If the expression contains an error, the function immediately returns that error
-// If no error, the success value is unwrapped and execution continues
-
-// Basic usage with result types
-Value value = riskyOperation()? // Unwraps result or returns early if error
-
-// When used on a function returning <T, error>:
-readConfig(path string) -> <Config, error> {
-  []byte data = readFile(path)? // If error, returns error. If ok, unwraps to []byte
-  Config config = parseConfig(data)? // Same pattern
-  return config // Only reached if no errors occurred
-}
-
-// When used on a function returning multiple values with error as last value:
-readConfig(path string) -> ([]byte, error) {
-  []byte data = readFile(path)? // If error, returns (zero, error). If ok, unwraps to []byte
-  processConfig(data)? // Continues only if no error
-  return data, nil
-}
-
-// Combining with pipe operators for elegant error handling chains
-processDocument(path string) -> <Document, error> {
-  return readFile(path)?           // Returns early if there's an error
-    |> parseMarkdown()?            // Each step can short-circuit on error
-    ||> validate()?                // Methods can also use error propagation
-    ||> transform()
-}
-
-!// Conditional (Ternary) Operator
-// @since Mint 0.2.2
-// The ? : operator allows for conditional expressions
-?:  // Conditional operator (ternary)
-
-// Syntax: condition ? valueIfTrue : valueIfFalse
-// Returns one of two values based on a condition
-
-// Basic usage
-int max = a > b ? a : b           // Returns the larger of a and b
-string status = isActive ? "Running" : "Stopped"  // Text based on condition
-
-// Can be used with any expressions that have compatible types
-int result = x > 0 ? x * 2 : -x   // Double positive numbers, negate negative ones
-float discount = isMember ? price * 0.1 : price * 0.05 // Different rates based on membership
-
-// Can be used anywhere an expression is expected
-print("Status: " + (batteryLevel < 10 ? "Critical" : "Normal"))
-
-// Nested ternary operators (use with caution for readability)
-string grade = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : "F"
-
-// Combining with other operators
-void logMessage(string msg, LogLevel level) {
-  level >= LogLevel.ERROR ? 
-    logToConsole(msg) && sendAlert(msg) : 
-    logToFile(msg)
-} 
+  ||> save(path + ".processed")

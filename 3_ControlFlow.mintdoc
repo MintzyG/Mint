@@ -84,7 +84,6 @@ while i < 5 {
 
 // Ensures execution only when the condition holds.
 
-
 !// While Loop with Collection Iteration
 // @since Mint 0.3.2
 // `while x in list` retrieves and checks an item's boolean value.
