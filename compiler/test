@@ -1,0 +1,114 @@
+a;
+aa;
+a1;
+a_
+a_a
+a_1
+a1_
+a1a
+a__
+_a
+_1
+_a
+
+main() -> int {}
+sum(a, b, c int) -> (int, int) {}
+
+0070
+42
+4_2
+0b0110
+0b11111110
+0600
+0_600
+0o600
+0O600       // second character is capital letter 'O'
+0XFF
+0XFFFF
+0xBadFace
+0xBad_Face
+0x_67_7a_2f_cc_40_c6
+170141183460469231731687303715884105727
+170_141183_460469_231731_687303_715884_105727
+
+(
+)
+,
+[
+]
+{
+}
+->
+
+// Arithmetic Operators
+
++   // Addition
+-   // Subtraction
+*   // Multiplication
+/   // Division
+\   // Integer division
+%   // Modulus
+
+// Comparison Operators
+
+==  // Equal to
+!=  // Not equal to
+>   // Greater than
+<   // Less than
+>=  // Greater than or equal
+<=  // Less than or equal
+
+// Logical Operators
+
+&&  // AND
+||  // OR
+!   // NOT
+
+// Bitwise Operators
+
+&   // AND
+|   // OR
+~   // NOT
+<<  // Left shift
+>>  // Right shift
+^   // XOR
+
+// Assignment Operators
+
+=   // Assignment
++=  // Add and assign
+-=  // Subtract and assign
+*=  // Multiply and assign
+/=  // Divide and assign
+\=  // Integer divide and assign
+%=  // Modulus and assign
+&=  // Bitwise AND and assign
+|=  // Bitwise OR and assign
+~=  // Bitwise NOT and assign
+^=  // Bitwise XOR and assign
+<<= // Shift left and assign
+>>= // Shift right and assign
+
+3.14
+0.1
+10.0
+123. 
+.5
+.0001
+.5e2
+.5E+10
+5e10
+42E+9
+9e-1
+100E0
+1.5e10
+3.14E-2
+10.e6
+2.E+3
+6.022e23
+
+"\n"
+"Hello, world!\n"
+"日本語"
+"\u65e5本\U00008a9e"
+"\xff\u00FF"
