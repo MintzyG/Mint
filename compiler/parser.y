@@ -25,6 +25,7 @@ void yyerror(const char *s);
 %token <strval>  DECIMAL_LIT BINARY_LIT OCTAL_LIT HEX_LIT
 %token <strval>  FLOAT_LIT
 %token <strval>  BOOL_LIT
+%token <strfal>  STRING_LIT
 %token <strval>  OPAREN CPAREN OBRACE CBRACE OBRACK CBRACK ARROW IDENTIFIER
 %right <strval>  COMMA
 %token <strval>  TERMINATOR
@@ -57,12 +58,11 @@ program:
 
 TOP_LEVEL_DECL:
       FUNCTION_DECL { printf("found function\n"); }
-    | VAR_DECL TERMINATOR { print_var_decl(&$1); }
-    | TERMINATOR { }
+    | VAR_DECL { print_var_decl(&$1); }
     ;
 
 VAR_DECL:
-      NAMED_TYPE IDENTIFIER_LIST {
+      NAMED_TYPE IDENTIFIER_LIST TERMINATOR {
         $$.IdList = *$2;
         $$.Type = $1;
       }

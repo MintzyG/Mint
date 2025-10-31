@@ -7,8 +7,8 @@ path configFile
 char emoji
 
 sum(int) -> int {  
-  int a
-  int b
+  path a
+  bool b
 
 
   if x < y {}

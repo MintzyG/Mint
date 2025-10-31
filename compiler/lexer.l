@@ -15,9 +15,6 @@ int yycolumn = 1;
 %option yylineno
 
 /* Mint Definitions */
-KEYWORDS "mut"|"const"|"type"|"static"|"map"|"set"|"struct"|"enum"|"if"|"elif"|"else"|"for"|"while"|"break"|"continue"|"in"|"match"|"switch"|"jmp"
-TYPES    "int"|"i8"|"i16"|"i32"|"i64"|"i128"|"u8"|"u16"|"u32"|"u64"|"u128"|"bool"|"path"|"float"|"f32"|"f64"|"char"|"string"
-
 STRING_LIT "\""[^\"]*"\""
 
 IDENTIFIER {LETTER}({LETTER}|{DECIMAL_DIGIT})*
@@ -48,170 +45,539 @@ HEX_DIGIT     ([0-9]|[A-F]|[a-f])
 [ \t]+            /* eat up whitespace */
 "//".*            /* skip until end of line */
 "/*"(.|"\n")*"*/" /* skip block comments */
-{KEYWORDS} {
-  last_was_terminator = 0;
-  switch (yytext[0]) {
-    case 'm':
-      if (!strcmp(yytext, "mut"))   return MUT;
-      if (!strcmp(yytext, "map"))   return MAP;
-      if (!strcmp(yytext, "match")) return MATCH;
-      break;
-    case 'c':
-      if (!strcmp(yytext, "const"))    return CONST;
-      if (!strcmp(yytext, "continue")) return CONTINUE;
-      break;
-    case 't':
-      if (!strcmp(yytext, "type")) return TYPEKW;
-      break;
-    case 's':
-      if (!strcmp(yytext, "static")) return STATIC;
-      if (!strcmp(yytext, "struct")) return STRUCT;
-      if (!strcmp(yytext, "switch")) return SWITCH;
-      break;
-    case 'e':
-      if (!strcmp(yytext, "enum")) return ENUM;
-      if (!strcmp(yytext, "elif")) return ELIF;
-      if (!strcmp(yytext, "else")) return ELSE;
-      break;
-    case 'i':
-      if (!strcmp(yytext, "if")) return IF;
-      if (!strcmp(yytext, "in")) return IN;
-      break;
-    case 'f':
-      if (!strcmp(yytext, "for")) return FOR;
-      break;
-    case 'w':
-      if (!strcmp(yytext, "while")) return WHILE;
-      break;
-    case 'b':
-      if (!strcmp(yytext, "break")) return BREAK;
-      break;
-    case 'j':
-      if (!strcmp(yytext, "jmp")) return JMP;
-      break;
-  }
-  // fallback: treat unknown text matching KEYWORDS rule as IDENT maybe?
-  return IDENTIFIER;
-}
-{TYPES} {
-  last_was_terminator = 0;
-  switch (yytext[0]) {
-    case 'i':
-      if (!strcmp(yytext, "int"))   return yylval.strval = strdup(yytext), INT;
-      if (!strcmp(yytext, "i8"))    return yylval.strval = strdup(yytext), I8;
-      if (!strcmp(yytext, "i16"))   return yylval.strval = strdup(yytext), I16;
-      if (!strcmp(yytext, "i32"))   return yylval.strval = strdup(yytext), I32;
-      if (!strcmp(yytext, "i64"))   return yylval.strval = strdup(yytext), I64;
-      if (!strcmp(yytext, "i128"))  return yylval.strval = strdup(yytext), I128;
-      break;
 
-    case 'u':
-      if (!strcmp(yytext, "u8"))    return yylval.strval = strdup(yytext), U8;
-      if (!strcmp(yytext, "u16"))   return yylval.strval = strdup(yytext), U16;
-      if (!strcmp(yytext, "u32"))   return yylval.strval = strdup(yytext), U32;
-      if (!strcmp(yytext, "u64"))   return yylval.strval = strdup(yytext), U64;
-      if (!strcmp(yytext, "u128"))  return yylval.strval = strdup(yytext), U128;
-      break;
-
-    case 'b':
-      if (!strcmp(yytext, "bool"))  return yylval.strval = strdup(yytext), BOOL;
-      break;
-
-    case 'p':
-      if (!strcmp(yytext, "path"))  return yylval.strval = strdup(yytext), PATH;
-      break;
-
-    case 'f':
-      if (!strcmp(yytext, "float")) return yylval.strval = strdup(yytext), FLOAT;
-      if (!strcmp(yytext, "f32"))   return yylval.strval = strdup(yytext), F32;
-      if (!strcmp(yytext, "f64"))   return yylval.strval = strdup(yytext), F64;
-      break;
-
-    case 'c':
-      if (!strcmp(yytext, "char"))  return yylval.strval = strdup(yytext), CHAR;
-      break;
-
-    case 's':
-      if (!strcmp(yytext, "string")) return yylval.strval = strdup(yytext), STRING;
-      break;
-  }
-
-  // fallback: treat unknown text matching KEYWORDS rule as IDENT maybe?
-  return IDENTIFIER;
-}
 ("True"|"true"|"TRUE"|"False"|"false"|"FALSE") { 
-  /* printf( "BOOL_LIT(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "BOOL_LIT(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext);
   return BOOL_LIT;
 }
+
+"break" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("BREAK_KW ");
+  #endif
+  return BREAK;
+}
+"bool"  {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("BOOL_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), BOOL;
+}
+
+"continue" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("CONTINUE_KW ");
+  #endif
+  return CONTINUE;
+}
+"const" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("CONST_KW ");
+  #endif
+  return CONST;
+}
+"char"  {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("CHAR_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), CHAR;
+}
+
+"elif" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("ELIF_KW ");
+  #endif
+  return ELIF;
+}
+"else" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("ELSE_KW ");
+  #endif
+  return ELSE;
+}
+"enum" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("ENUM_KW ");
+  #endif
+  return ENUM;
+}
+
+"float" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("FLOAT_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), FLOAT;
+}
+"f32"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("F32_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), F32;
+}
+"f64"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("F64_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), F64;
+}
+"for" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("FOR_KW ");
+  #endif
+  return FOR;
+}
+
+"int"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("INT_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), INT;
+}
+"i8"    {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("I8_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), I8;
+}
+"i128"  {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("I128_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), I128;
+}
+"i16"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("I16_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), I16;
+}
+"i32"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("I32_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), I32;
+}
+"i64"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("I64_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), I64;
+}
+"if" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("IF_KW ");
+  #endif
+  return IF;
+}
+"in" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("IN_KW ");
+  #endif
+  return IN;
+}
+
+"jmp" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("JMP_KW ");
+  #endif
+  return JMP;
+}
+
+"match" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("MATCH_KW ");
+  #endif
+  return MATCH;
+}
+"map" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("MAP_KW ");
+  #endif
+  return MAP;
+}
+"mut" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("MUT_KW ");
+  #endif
+  return MUT;
+}
+
+"path"  {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("PATH_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), PATH;
+}
+
+"string" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("STRING_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), STRING;
+}
+"struct" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("STRUCT_KW ");
+  #endif
+  return STRUCT;
+}
+"static" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("STATIC_KW ");
+  #endif
+  return STATIC;
+}
+"switch" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("SWITCH_KW ");
+  #endif
+  return SWITCH;
+}
+
+"type" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("TYPEKW_KW ");
+  #endif
+  return TYPEKW;
+}
+
+"u8"    {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("U8_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), U8;
+}
+"u128"  {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("U128_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), U128;
+}
+"u16"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("U16_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), U16;
+}
+"u32"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("U32_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), U32;
+}
+"u64"   {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("U64_KW ");
+  #endif
+  return yylval.strval = strdup(yytext), U64;
+}
+
+"while" {
+  last_was_terminator = 0;
+  #ifdef LEXME
+  printf("WHILE_KW ");
+  #endif
+  return WHILE;
+}
+
 {IDENTIFIER}  { 
-  /* printf( "IDENTIFIER(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "IDENTIFIER(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext); return IDENTIFIER; 
 }
 {BINARY_LIT}  { 
-  /* printf( "INT_LIT(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "INT_LIT(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext); return BINARY_LIT; 
 }
 {DECIMAL_LIT} { 
-  /* printf( "INT_LIT(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "INT_LIT(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext); return DECIMAL_LIT; 
 }
 {OCTAL_LIT}   { 
-  /* printf( "INT_LIT(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "INT_LIT(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext); return OCTAL_LIT; 
 }
 {HEX_LIT}     { 
-  /* printf( "INT_LIT(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "INT_LIT(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext); return HEX_LIT; 
 }
 {FLOAT_LIT}   { 
-  /* printf( "FLOAT_LIT(%s)", yytext ); */
+  #ifdef LEXME
+  printf( "FLOAT_LIT(%s) ", yytext );
+  #endif
   last_was_terminator = 0; 
   yylval.strval = strdup(yytext); return FLOAT_LIT;
 }
-
-"("           { last_was_terminator = 0; return OPAREN; }
-")"           { last_was_terminator = 0; return CPAREN; }
-"{"           { last_was_terminator = 0; return OBRACE; }
-"}"           { last_was_terminator = 0; return CBRACE; }
-"["           { last_was_terminator = 0; return OBRACK; }
-"]"           { last_was_terminator = 0; return CBRACK; }
-","           { last_was_terminator = 0; return COMMA; }
-"->"          { last_was_terminator = 0; return ARROW; }
-"\|\|"          { last_was_terminator = 0; return OR_TOK; }
-"&&"          { last_was_terminator = 0; return AND_TOK; }
-"=="          { last_was_terminator = 0; return EQ_TOK; }
-"!="          { last_was_terminator = 0; return NEQ_TOK; }
-"<<"          { last_was_terminator = 0; return LS_TOK; }
-">>"          { last_was_terminator = 0; return RS_TOK; }
-"<="          { last_was_terminator = 0; return LTE_TOK; }
-">="          { last_was_terminator = 0; return GTE_TOK; }
-"<"           { last_was_terminator = 0; return LT_TOK; }
-">"           { last_was_terminator = 0; return GT_TOK; }
-"+"           { last_was_terminator = 0; return ADD_TOK; }
-"*"           { last_was_terminator = 0; return MULT_TOK; }
-"/"           { last_was_terminator = 0; return DIV_TOK; }
-"\\"          { last_was_terminator = 0; return INTDIV_TOK; }
-"%"           { last_was_terminator = 0; return MOD_TOK; }
-"-"           { last_was_terminator = 0; return SUB_TOK; }
-"|"           { last_was_terminator = 0; return BIN_OR_TOK; }
-"&"           { last_was_terminator = 0; return BIN_AND_TOK; }
-"^"           { last_was_terminator = 0; return XOR_TOK; }
-"~"           { last_was_terminator = 0; return BIN_NEG_TOK; }
-"!"           { last_was_terminator = 0; return NEG_TOK; }
+"("           { 
+  #ifdef LEXME
+  printf("OPAREN ");
+  #endif
+  last_was_terminator = 0; 
+  return OPAREN; 
+}
+")"           { 
+  #ifdef LEXME
+  printf("CPAREN ");
+  #endif
+  last_was_terminator = 0; 
+  return CPAREN; 
+}
+"{"           { 
+  #ifdef LEXME
+  printf("OBRACE ");
+  #endif
+  last_was_terminator = 0; 
+  return OBRACE; 
+}
+"}"           { 
+  #ifdef LEXME
+  printf("CBRACE ");
+  #endif
+  last_was_terminator = 0; 
+  return CBRACE; 
+}
+"["           { 
+  #ifdef LEXME
+  printf("OBRACK ");
+  #endif
+  last_was_terminator = 0; 
+  return OBRACK; 
+}
+"]"           { 
+  #ifdef LEXME
+  printf("CBRACK ");
+  #endif
+  last_was_terminator = 0; 
+  return CBRACK; 
+}
+","           { 
+  #ifdef LEXME
+  printf("COMMA ");
+  #endif
+  last_was_terminator = 0; 
+  return COMMA; 
+}
+"->"          { 
+  #ifdef LEXME
+  printf("ARROW ");
+  #endif
+  last_was_terminator = 0; 
+  return ARROW; 
+}
+"\|\|"        { 
+  #ifdef LEXME
+  printf("OR_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return OR_TOK; 
+}
+"&&"          { 
+  #ifdef LEXME
+  printf("AND_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return AND_TOK; 
+}
+"=="          { 
+  #ifdef LEXME
+  printf("EQ_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return EQ_TOK; 
+}
+"!="          { 
+  #ifdef LEXME
+  printf("NEQ_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return NEQ_TOK; 
+}
+"<<"          { 
+  #ifdef LEXME
+  printf("LS_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return LS_TOK; 
+}
+">>"          { 
+  #ifdef LEXME
+  printf("RS_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return RS_TOK; 
+}
+"<="          { 
+  #ifdef LEXME
+  printf("LTE_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return LTE_TOK; 
+}
+">="          { 
+  #ifdef LEXME
+  printf("GTE_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return GTE_TOK; 
+}
+"<"           { 
+  #ifdef LEXME
+  printf("LT_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return LT_TOK; 
+}
+">"           { 
+  #ifdef LEXME
+  printf("GT_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return GT_TOK; 
+}
+"+"           { 
+  #ifdef LEXME
+  printf("ADD_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return ADD_TOK; 
+}
+"*"           { 
+  #ifdef LEXME
+  printf("MULT_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return MULT_TOK; 
+}
+"/"           { 
+  #ifdef LEXME
+  printf("DIV_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return DIV_TOK; 
+}
+"\\"          { 
+  #ifdef LEXME
+  printf("INTDIV_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return INTDIV_TOK; 
+}
+"%"           { 
+  #ifdef LEXME
+  printf("MOD_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return MOD_TOK; 
+}
+"-"           { 
+  #ifdef LEXME
+  printf("SUB_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return SUB_TOK; 
+}
+"|"           { 
+  #ifdef LEXME
+  printf("BIN_OR_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return BIN_OR_TOK; 
+}
+"&"           { 
+  #ifdef LEXME
+  printf("BIN_AND_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return BIN_AND_TOK; 
+}
+"^"           { 
+  #ifdef LEXME
+  printf("XOR_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return XOR_TOK; 
+}
+"~"           { 
+  #ifdef LEXME
+  printf("BIN_NEG_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return BIN_NEG_TOK; 
+}
+"!"           { 
+  #ifdef LEXME
+  printf("NEG_TOK ");
+  #endif
+  last_was_terminator = 0; 
+  return NEG_TOK; 
+}
 
 {STRING_LIT}  { 
-  /* printf( "STRING_LIT(%s)\n", yytext ); */
+  #ifdef LEXME
+  printf( "STRING_LIT(%s)\n", yytext );
+  #endif
+  last_was_terminator = 0;
+  return yylval.strval = strdup(yytext), STRING_LIT;
 }
 ("\n"|";")+   {
+  if (yytext[0] == '\n') { yylineno++; yycolumn = 1; }
+  #ifdef LEXME
+  printf("TERMINATOR\n");
+  #endif
   if (!last_was_terminator) {
-    if (yytext[0] == '\n') { yylineno++; yycolumn = 1; }
     last_was_terminator = 1;
   }
   return TERMINATOR;
@@ -236,6 +602,13 @@ void yyerror(const char *s) {
 }
 
 int main() {
-  yyparse(); // Start the lexical analysis
+  #ifdef LEXME
+  int token = 1;
+  while (token) {
+    token = yylex();
+  }
+  #else
+  yyparse(); 
+  #endif
   return 0;
 }
