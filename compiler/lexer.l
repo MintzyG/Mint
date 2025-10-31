@@ -1,8 +1,18 @@
 %{
-#include "function_helper.h"
+#include "types.h"
 #include "parser.tab.h"
 int last_was_terminator = 0;
+
+int yycolumn = 1;
+
+#define YY_USER_ACTION \
+    yylloc.first_line = yylloc.last_line = yylineno; \
+    yylloc.first_column = yycolumn; \
+    yylloc.last_column = yycolumn + yyleng - 1; \
+    yycolumn += yyleng;
 %}
+
+%option yylineno
 
 /* Mint Definitions */
 KEYWORDS "mut"|"const"|"type"|"static"|"map"|"set"|"struct"|"enum"|"if"|"elif"|"else"|"for"|"while"|"break"|"continue"|"in"|"match"|"switch"|"jmp"
@@ -33,18 +43,11 @@ BINARY_DIGIT  [0-1]
 OCTAL_DIGIT   [0-7]
 HEX_DIGIT     ([0-9]|[A-F]|[a-f])
 
-/* Mint Operators */
-
-OPERATORS {ARITHMETIC_OPERATORS}|{COMPARISON_OPERATORS}|{LOGICAL_OPERATORS}|{BITWISE_OPERATORS}|{ASSIGNMENT_OPERATORS}
-ARITHMETIC_OPERATORS "+"|"-"|"*"|"/"|"\\"|"%"
-COMPARISON_OPERATORS "=="|"!="|">"|"<"|">="|"<="
-LOGICAL_OPERATORS    "&&"|"||"|"!"
-BITWISE_OPERATORS    "&"|"|"|"~"|"<<"|">>"|"^"
-ASSIGNMENT_OPERATORS "="|"+="|"-="|"*="|"/="|"\\="|"%="|"&="|"|="|"~="|"^="|"<<="|">>="
 %%
 
-[ \t]+      /* eat up whitespace */
-"//".*     /* skip until end of line */
+[ \t]+            /* eat up whitespace */
+"//".*            /* skip until end of line */
+"/*"(.|"\n")*"*/" /* skip block comments */
 {KEYWORDS} {
   last_was_terminator = 0;
   switch (yytext[0]) {
@@ -142,10 +145,6 @@ ASSIGNMENT_OPERATORS "="|"+="|"-="|"*="|"/="|"\\="|"%="|"&="|"|="|"~="|"^="|"<<=
   yylval.strval = strdup(yytext);
   return BOOL_LIT;
 }
-{OPERATORS}   { 
-  /* printf( "OPERATOR(%s)", yytext ); */
-  last_was_terminator = 0; 
-}
 {IDENTIFIER}  { 
   /* printf( "IDENTIFIER(%s)", yytext ); */
   last_was_terminator = 0; 
@@ -174,7 +173,9 @@ ASSIGNMENT_OPERATORS "="|"+="|"-="|"*="|"/="|"\\="|"%="|"&="|"|="|"~="|"^="|"<<=
 {FLOAT_LIT}   { 
   /* printf( "FLOAT_LIT(%s)", yytext ); */
   last_was_terminator = 0; 
+  yylval.strval = strdup(yytext); return FLOAT_LIT;
 }
+
 "("           { last_was_terminator = 0; return OPAREN; }
 ")"           { last_was_terminator = 0; return CPAREN; }
 "{"           { last_was_terminator = 0; return OBRACE; }
@@ -183,14 +184,34 @@ ASSIGNMENT_OPERATORS "="|"+="|"-="|"*="|"/="|"\\="|"%="|"&="|"|="|"~="|"^="|"<<=
 "]"           { last_was_terminator = 0; return CBRACK; }
 ","           { last_was_terminator = 0; return COMMA; }
 "->"          { last_was_terminator = 0; return ARROW; }
+"\|\|"          { last_was_terminator = 0; return OR_TOK; }
+"&&"          { last_was_terminator = 0; return AND_TOK; }
+"=="          { last_was_terminator = 0; return EQ_TOK; }
+"!="          { last_was_terminator = 0; return NEQ_TOK; }
+"<<"          { last_was_terminator = 0; return LS_TOK; }
+">>"          { last_was_terminator = 0; return RS_TOK; }
+"<="          { last_was_terminator = 0; return LTE_TOK; }
+">="          { last_was_terminator = 0; return GTE_TOK; }
+"<"           { last_was_terminator = 0; return LT_TOK; }
+">"           { last_was_terminator = 0; return GT_TOK; }
+"+"           { last_was_terminator = 0; return ADD_TOK; }
+"*"           { last_was_terminator = 0; return MULT_TOK; }
+"/"           { last_was_terminator = 0; return DIV_TOK; }
+"\\"          { last_was_terminator = 0; return INTDIV_TOK; }
+"%"           { last_was_terminator = 0; return MOD_TOK; }
+"-"           { last_was_terminator = 0; return SUB_TOK; }
+"|"           { last_was_terminator = 0; return BIN_OR_TOK; }
+"&"           { last_was_terminator = 0; return BIN_AND_TOK; }
+"^"           { last_was_terminator = 0; return XOR_TOK; }
+"~"           { last_was_terminator = 0; return BIN_NEG_TOK; }
+"!"           { last_was_terminator = 0; return NEG_TOK; }
 
 {STRING_LIT}  { 
   /* printf( "STRING_LIT(%s)\n", yytext ); */
 }
 ("\n"|";")+   {
   if (!last_was_terminator) {
-    /* if (yytext[0] == '\n') printf ("TERMINATOR(\\n)\n");
-       else printf("TERMINATOR(;)\n"); */
+    if (yytext[0] == '\n') { yylineno++; yycolumn = 1; }
     last_was_terminator = 1;
   }
   return TERMINATOR;
@@ -203,7 +224,15 @@ int yywrap() {
 }
 
 void yyerror(const char *s) {
-  fprintf(stderr, "Syntax error: %s\n", s);
+  fprintf(stderr, "Error at line %d, column %d: %s\n", 
+      yylloc.first_line, 
+      yylloc.first_column, 
+      s);
+
+  if (yytext[0] == '\n') yytext = strdup("new line");
+  if (yytext && yytext[0] != '\0') {
+    fprintf(stderr, "Near token: '%s'\n", yytext);
+  }
 }
 
 int main() {

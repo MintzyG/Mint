@@ -11,27 +11,19 @@ typedef enum {
     TYPE_FLOAT, TYPE_F32, TYPE_F64
 } BaseType;
 
-typedef struct {
-    char* id;
-} Identifier;
+const char* base_type_to_string(BaseType type);
 
 typedef struct {
-    Identifier* items;
-    int size;
-} IdentifierList;
+  char **IDs;
+  int Size;
+} IdList;
+
+void print_id_list(IdList *list);
 
 typedef struct {
-    IdentifierList name_list;
-    BaseType type;
-} Param;
+  BaseType Type;
+  IdList IdList;
+} VarDecl;
 
-typedef struct {
-    Param* list;
-    int size;
-} ParamList;
+void print_var_decl(VarDecl *decl);
 
-typedef struct {
-    char* name;
-    ParamList params;
-    ParamList returns;
-} Function;
