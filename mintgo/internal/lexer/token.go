@@ -2,6 +2,7 @@ package lexer
 
 import "fmt"
 
+//go:generate go run golang.org/x/tools/cmd/stringer@latest -type=TokenKind
 type TokenKind int
 
 const (
@@ -153,6 +154,8 @@ const (
 	EXPECT
 	IS
 	isReservedEnd
+
+	NEW_LINE
 )
 
 type Token struct {
@@ -173,5 +176,5 @@ type Pos struct {
 }
 
 func (p Pos) String() string {
-	return fmt.Sprintf("%s:%d:%d", p.File, p.Line, p.Col)
+	return fmt.Sprintf("[%s] %d:%d", p.File, p.Line, p.Col)
 }
